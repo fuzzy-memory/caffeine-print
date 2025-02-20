@@ -41,6 +41,7 @@ def get_from_worldnewsapi_com():
         "categories": "politics",
         "number": news_items_per_call,
         "offset": offset,
+        "sort": "publish-time",
         "sort-direction": "DESC",
         "news-sources": news_sources,
     }
