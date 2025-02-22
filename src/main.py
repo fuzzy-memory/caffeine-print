@@ -93,19 +93,52 @@ def get_from_worldnewsapi_com():
 
 
 def rank_news():
-    import pandas as pd
+    news_items = [
+        i
+        for i in json.load(open("assets/news.json", "r"))
+        if i.get("title") is not None and i.get("summary") is not None
+    ]
+    nltk.download("vader_lexicon")
 
-    news_json = json.load(open("assets/news.json", "r"))
-    df = pd.read_json("assets/news.json")
-    df["source"] = df.apply(
-        lambda x: x["url"].replace("https://", "").replace("www.", "").split("/")[0],
-        axis=1,
+    # TF IDF Vectorizer
+    tfidf = TfidfVectorizer(stop_words="english")
+    titles = [i.get("title") for i in news_items]
+    summaries = [i.get("summary").lower() for i in news_items]
+
+    # Fit TF-IDF Model
+    title_tfidf_matrix = tfidf.fit_transform(titles)
+    summary_tfidf_matrix = tfidf.fit_transform(summaries)
+
+    # Normalize and Extract Scores
+    title_scores = np.mean(title_tfidf_matrix.toarray(), axis=1)
+    summary_scores = np.mean(summary_tfidf_matrix.toarray(), axis=1)
+    sentiment_scores = [i.get("sentiment") for i in news_items]
+    source_scores = json.load(open("assets/news_sources.json", "r"))
+
+    # Compute final relevance
+    weights = {"title": 0.3, "source": 0.3, "summary": 0.2, "sentiment": 0.2}
+    relevance_scores = []
+
+    for i, article in enumerate(news_items):
+        source_score = source_scores.get(
+            "https://" + article["url"].replace("https://", "").split("/")[0]
+        )
+        score = (
+            weights["title"] * title_scores[i] * 100
+            + weights["source"] * source_score
+            + weights["summary"] * summary_scores[i] * 100
+            + weights["sentiment"] * sentiment_scores[i] * 100
+        )
+        relevance_scores.append(score)
+
+    # Add scores to news items and sort
+    for i, article in enumerate(news_items):
+        article["relevance_score"] = relevance_scores[i]
+
+    sorted_articles = sorted(
+        news_items, key=lambda x: x["relevance_score"], reverse=True
     )
-    print(
-        df[
-            ["id", "title", "publish_date", "sentiment", "source", "summary"]
-        ].to_string()
-    )
+    return sorted_articles
 
 
 if __name__ == "__main__":
