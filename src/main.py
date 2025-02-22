@@ -1,10 +1,14 @@
 import datetime
 import json
 import os
-
-from dotenv import load_dotenv
-import requests
 from http import HTTPStatus
+
+import nltk
+import numpy as np
+import pandas as pd
+import requests
+from dotenv import load_dotenv
+from sklearn.feature_extraction.text import TfidfVectorizer
 
 
 def get_sources_from_txt():
