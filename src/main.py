@@ -64,6 +64,7 @@ def get_from_worldnewsapi_com():
     while True:
         if remaining_items <= 0 or remaining_quota <= 1:
             break
+        params.update({"offset": offset, "number": news_items_per_call})
         next_response = requests.get(url, headers=headers, params=params)
         if next_response.status_code == HTTPStatus.OK:
             received = len(next_response.json().get("news"))
@@ -74,7 +75,7 @@ def get_from_worldnewsapi_com():
             offset += news_items_per_call
             remaining_quota = float(first_response.headers.get("X-API-Quota-Left"))
             print(
-                f"Retrieved {len(news_items)} items in total."
+                f"Retrieved {len(news_items)} items in total. "
                 + (f"{remaining_items} to go" if remaining_items >= 0 else "")
             )
         else:
@@ -83,7 +84,12 @@ def get_from_worldnewsapi_com():
                 f"{next_response.status_code}: Retrieved until offset {offset}. Quota: {next_response.headers.get('X-API-Quota-Left')}"
             )
     print(f"Operation complete. Remaining quota: {remaining_quota}")
-    json.dump(news_items, open(f"assets/news.json", "w"))
+    df = pd.DataFrame(news_items).drop_duplicates(subset=["id"])
+    df.to_json(
+        f"assets/news.json",
+        index=False,
+        orient="records",
+    )
 
 
 def rank_news():
