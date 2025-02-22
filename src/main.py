@@ -8,13 +8,11 @@ from http import HTTPStatus
 
 
 def get_sources_from_txt():
-    with open("assets/news_sources.txt", "r") as f:
-        sources = f.readlines()
-    return ",".join([i.strip() for i in sources])
+    sources = json.load(open("assets/news_sources.json", "r"))
+    return ",".join([i.strip() for i in sources.keys()])
 
 
 def get_from_worldnewsapi_com():
-    # todo debug status vars
     # Set vars
     api_key = os.environ.get("WORLDNEWSAPI_KEY_CLIP")
     url = "https://api.worldnewsapi.com/search-news"
