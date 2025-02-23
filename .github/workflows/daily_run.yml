@@ -38,3 +38,5 @@ jobs:
         env:
           SENDER_EMAIL: ${{ secrets.SENDER_EMAIL }}
           GMAIL_APP_PASSWORD_MAIN: ${{ secrets.GMAIL_APP_PASSWORD_MAIN }}
+          WORLDNEWSAPI_KEY_CLIP: ${{ secrets.WORLDNEWSAPI_KEY_CLIP }}
+          RECIPIENTS: ${{ secrets.RECIPIENTS }}
