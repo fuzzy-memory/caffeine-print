@@ -175,4 +175,3 @@ cython_debug/
 
 # PyPI configuration file
 .pypirc
-src/recipients.py

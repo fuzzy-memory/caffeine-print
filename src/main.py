@@ -16,7 +16,6 @@ from dotenv import load_dotenv
 from sklearn.feature_extraction.text import TfidfVectorizer
 
 from htmls import date, footer_html, header_html
-from recipients import recipients
 
 
 def get_sources_from_txt():
@@ -181,6 +180,7 @@ def render_news(article_list: List[Dict[str, Any]]) -> Tuple[str, List[Dict[str,
 def send_email(content: str):
     sender_email = os.environ.get("SENDER_EMAIL")
     app_password = os.environ.get("GMAIL_APP_PASSWORD_MAIN")
+    recipients = json.loads(os.environ.get("RECIPIENTS"))
 
     # Set up SMTP object
     smtp_server = smtplib.SMTP_SSL("smtp.gmail.com", 465)
