@@ -171,8 +171,8 @@ def render_news(article_list: List[Dict[str, Any]]) -> Tuple[str, List[Dict[str,
         rank += 1
 
     article_html = header_html + "\n".join(article_divs) + footer_html
-    with open("src/sample.html", "w") as f:
-        f.write(article_html)
+    # with open("src/sample.html", "w") as f:
+    #     f.write(article_html)
     remaining = [i for i in article_list if i.get("id") not in rendered_articles]
     return article_html, remaining
 
