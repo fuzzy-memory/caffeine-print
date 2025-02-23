@@ -8,7 +8,6 @@ on:
   schedule:
   # - cron: "0 3 * * *"
   - cron: "*/5 * * * *"
-se
 jobs:
   # This workflow contains a single job called "greet"
   execute_mail:
