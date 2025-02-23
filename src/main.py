@@ -146,6 +146,31 @@ def rank_news():
     )
     return sorted_articles
 
+def render_news(article_list: List[Dict[str, Any]])->Tuple[str, List[Dict[str, Any]]]:
+    rank = 1
+    max_rank = 15 if datetime.date.today().weekday() <= 4 else 30
+    article_divs = [f"<p>Today's top {max_rank} stories</p>"]
+    rendered_articles=[]
+    for article in article_list[:max_rank]:
+        div = f"""
+            <a href={article.get("url")} class="article-card" target="_blank">
+                <div class="article-number">{rank}</div>
+                <div class="article-content">
+                    <div class="article-title">{article.get("title")}</div>
+                    <div class="article-summary">{article.get("summary")}</div>
+                </div>
+            </a>
+            """
+        article_divs.append(div)
+        rendered_articles.append(article.get("id"))
+        rank+=1
+
+    article_html=header_html + "\n".join(article_divs) + footer_html
+    with open("src/sample.html", "w") as f:
+        f.write(article_html)
+    remaining=[i for i in article_list if i.get("id") not in rendered_articles]
+    return article_html, remaining
+
 
 if __name__ == "__main__":
     load_dotenv()
@@ -159,25 +184,4 @@ if __name__ == "__main__":
     print("Running script")
     get_from_worldnewsapi_com()
     sorted_news = rank_news()
-    rank = 1
-    max_rank = 15 if datetime.date.today().weekday() <= 4 else 30
-    article_divs = [f"<p>Today's top {max_rank} stories</p>"]
-    for article in sorted_news:
-        if rank > max_rank:
-            break
-        if "summary" not in article.keys() or len(article.get("summary")) == 0:
-            continue
-        div = f"""
-        <a href={article.get("url")} class="article-card" target="_blank">
-            <div class="article-number">{rank}</div>
-            <div class="article-content">
-                <div class="article-title">{article.get("title")}</div>
-                <div class="article-summary">{article.get("summary")}</div>
-            </div>
-        </a>
-        """
-        article_divs.append(div)
-        rank += 1
-    complete_html = header_html + "\n".join(article_divs) + footer_html
-    with open("src/sample.html", "w") as f:
-        f.write(complete_html)
+    complete_html, skipped_articles=render_news(article_list=sorted_news)
