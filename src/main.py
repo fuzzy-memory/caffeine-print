@@ -2,7 +2,12 @@ import datetime
 import json
 import os
 import ssl
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
 from http import HTTPStatus
+from typing import List, Dict, Tuple, Any
+import smtplib
+from recipients import recipients
 
 import nltk
 import numpy as np
@@ -11,7 +16,7 @@ import requests
 from dotenv import load_dotenv
 from sklearn.feature_extraction.text import TfidfVectorizer
 
-from htmls import footer_html, header_html
+from htmls import footer_html, header_html, date
 
 
 def get_sources_from_txt():
@@ -171,7 +176,25 @@ def render_news(article_list: List[Dict[str, Any]])->Tuple[str, List[Dict[str, A
     remaining=[i for i in article_list if i.get("id") not in rendered_articles]
     return article_html, remaining
 
+def send_email(content:str):
+    sender_email = os.environ.get("SENDER_EMAIL")
+    app_password = os.environ.get("GMAIL_APP_PASSWORD_MAIN")
 
+    # Set up SMTP object
+    smtp_server = smtplib.SMTP_SSL('smtp.gmail.com', 465)
+    smtp_server.ehlo()
+    smtp_server.login(sender_email, app_password)
+
+    # Set up message
+    message=MIMEMultipart("alternative")
+    message["Subject"] = f"Hashbrown: {date}"
+    message["From"] = sender_email
+    message["To"] = ", ".join(recipients)
+    message.attach(MIMEText(content, "html"))
+
+    # Send email
+    smtp_server.sendmail(from_addr=sender_email, to_addrs=recipients, msg=message.as_string())
+    smtp_server.close()
 if __name__ == "__main__":
     load_dotenv()
     try:
@@ -185,3 +208,5 @@ if __name__ == "__main__":
     get_from_worldnewsapi_com()
     sorted_news = rank_news()
     complete_html, skipped_articles=render_news(article_list=sorted_news)
+    send_email(content=complete_html)
+    print("Emails sent :)")
