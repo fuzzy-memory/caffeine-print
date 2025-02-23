@@ -1,0 +1,23 @@
+# This is a basic workflow that runs daily
+
+name: Daily run
+
+# Controls when the action will run. Workflow runs when manually triggered using the UI
+# or API.
+on:
+  schedule:
+  - cron: "0 3 * * *"
+
+jobs:
+  # This workflow contains a single job called "greet"
+  execute_mail:
+    # The type of runner that the job will run on
+    runs-on: ubuntu-latest
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+    # Runs a single command using the runners shell
+    - name: Set up environment
+      run: pip3 install -r requirements.txt
+    - name: Run code
+      run: python3 main.py
