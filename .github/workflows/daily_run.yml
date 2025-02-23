@@ -25,7 +25,6 @@ jobs:
       run: pip3 install -r requirements.txt
     - name: Run code
       run: python3 main.py
-      with:
-        env:
-          SENDER_EMAIL: ${{ secrets.SENDER_EMAIL }}
-          GMAIL_APP_PASSWORD_MAIN: ${{ secrets.GMAIL_APP_PASSWORD_MAIN }}
+      env:
+        SENDER_EMAIL: ${{ secrets.SENDER_EMAIL }}
+        GMAIL_APP_PASSWORD_MAIN: ${{ secrets.GMAIL_APP_PASSWORD_MAIN }}
