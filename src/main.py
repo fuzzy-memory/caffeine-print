@@ -212,7 +212,7 @@ if __name__ == "__main__":
         ssl._create_default_https_context = _create_unverified_https_context
     nltk.download("vader_lexicon")
     print("Running script")
-    # get_from_worldnewsapi_com()
+    get_from_worldnewsapi_com()
     sorted_news = rank_news()
     complete_html, skipped_articles = render_news(article_list=sorted_news)
     send_email(content=complete_html)
