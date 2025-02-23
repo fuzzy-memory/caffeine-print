@@ -22,7 +22,7 @@ jobs:
     steps:
     # Runs a single command using the runners shell
     - name: Set up environment
-      run: pip3 install -r requirements.txt
+      run: pwd
     - name: Run code
       run: python3 main.py
       env:
