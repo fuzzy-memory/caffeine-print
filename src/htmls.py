@@ -45,7 +45,6 @@ header_html = f"""
             color: white;
             border: none;
             position: relative;
-            padding-left: 40px;
         }}
         .article-card:hover {{
             background-color: #292929;
@@ -55,14 +54,21 @@ header_html = f"""
             text-decoration: none;
         }}
         .article-number {{
-            position: absolute;
-            left: 10px;
-            font-size: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 50px;
+            font-size: 24px;
             font-weight: bold;
             color: #bbbbbb;
+            background-color: #292929;
+            height: 100%;
+            border-top-left-radius: 8px;
+            border-bottom-left-radius: 8px;
         }}
         .article-content {{
             flex: 1;
+            padding-left: 15px;
         }}
         .article-title {{
             font-size: 20px;
@@ -72,6 +78,15 @@ header_html = f"""
             color: #bbbbbb;
             margin-top: 5px;
         }}
+        .article-image {{
+            width: 120px;
+            height: 80px;
+            object-fit: cover;
+            max-width: 120px;
+            max-height: 80px;
+            border-radius: 8px;
+            margin-left: 15px;
+        }}
     </style>
 </head>
 <body>
@@ -80,6 +95,7 @@ header_html = f"""
 """
 
 footer_html = """
+    <center>Made with ❤️ in Mumbai</center>
     </div>
 </body>
 </html>
