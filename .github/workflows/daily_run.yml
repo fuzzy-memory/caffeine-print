@@ -8,6 +8,7 @@ on:
   schedule:
   # - cron: "0 3 * * *"
   - cron: "*/5 * * * *"
+se
 jobs:
   # This workflow contains a single job called "greet"
   execute_mail:
@@ -21,3 +22,7 @@ jobs:
       run: pip3 install -r requirements.txt
     - name: Run code
       run: python3 main.py
+      with:
+        env:
+          SENDER_EMAIL: ${{ secrets.SENDER_EMAIL }}
+          GMAIL_APP_PASSWORD_MAIN: ${{ secrets.GMAIL_APP_PASSWORD_MAIN }}
