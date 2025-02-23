@@ -5,9 +5,13 @@ name: Daily run
 # Controls when the action will run. Workflow runs when manually triggered using the UI
 # or API.
 on:
-  schedule:
+  # schedule:
   # - cron: "0 3 * * *"
-  - cron: "*/5 * * * *"
+  # - cron: "*/5 * * * *"
+  push:
+    branches:
+      - fuzzy-memory-patch-1
+
 jobs:
   # This workflow contains a single job called "greet"
   execute_mail:
