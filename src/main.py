@@ -1,6 +1,7 @@
 import datetime
 import json
 import os
+import ssl
 from http import HTTPStatus
 
 import nltk
@@ -102,7 +103,6 @@ def rank_news():
         for i in json.load(open("assets/news.json", "r"))
         if i.get("title") is not None and i.get("summary") is not None
     ]
-    nltk.download("vader_lexicon")
 
     # TF IDF Vectorizer
     tfidf = TfidfVectorizer(stop_words="english")
@@ -147,6 +147,13 @@ def rank_news():
 
 if __name__ == "__main__":
     load_dotenv()
+    try:
+        _create_unverified_https_context = ssl._create_unverified_context
+    except AttributeError:
+        pass
+    else:
+        ssl._create_default_https_context = _create_unverified_https_context
+    nltk.download("vader_lexicon")
     print("Running script")
     # get_from_worldnewsapi_com()
     rank_news()
