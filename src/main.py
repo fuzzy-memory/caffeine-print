@@ -11,6 +11,8 @@ import requests
 from dotenv import load_dotenv
 from sklearn.feature_extraction.text import TfidfVectorizer
 
+from htmls import footer_html, header_html
+
 
 def get_sources_from_txt():
     sources = json.load(open("assets/news_sources.json", "r"))
@@ -155,5 +157,27 @@ if __name__ == "__main__":
         ssl._create_default_https_context = _create_unverified_https_context
     nltk.download("vader_lexicon")
     print("Running script")
-    # get_from_worldnewsapi_com()
-    rank_news()
+    get_from_worldnewsapi_com()
+    sorted_news = rank_news()
+    rank = 1
+    max_rank = 15 if datetime.date.today().weekday() <= 4 else 30
+    article_divs = [f"<p>Today's top {max_rank} stories</p>"]
+    for article in sorted_news:
+        if rank > max_rank:
+            break
+        if "summary" not in article.keys() or len(article.get("summary")) == 0:
+            continue
+        div = f"""
+        <a href={article.get("url")} class="article-card" target="_blank">
+            <div class="article-number">{rank}</div>
+            <div class="article-content">
+                <div class="article-title">{article.get("title")}</div>
+                <div class="article-summary">{article.get("summary")}</div>
+            </div>
+        </a>
+        """
+        article_divs.append(div)
+        rank += 1
+    complete_html = header_html + "\n".join(article_divs) + footer_html
+    with open("src/sample.html", "w") as f:
+        f.write(complete_html)
