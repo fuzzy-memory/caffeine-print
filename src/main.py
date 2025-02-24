@@ -25,7 +25,7 @@ def get_sources_from_txt():
 
 def get_from_worldnewsapi_com():
     # Set vars
-    api_key = os.environ.get("WORLDNEWSAPI_KEY_CLIP")
+    api_key = os.environ.get("WORLDNEWSAPI_KEY")
     url = "https://api.worldnewsapi.com/search-news"
     # Date limit vars
     today = datetime.date.today()
@@ -179,7 +179,7 @@ def render_news(article_list: List[Dict[str, Any]]) -> Tuple[str, List[Dict[str,
 
 def send_email(content: str):
     sender_email = os.environ.get("SENDER_EMAIL")
-    app_password = os.environ.get("GMAIL_APP_PASSWORD_MAIN")
+    app_password = os.environ.get("GMAIL_APP_PASSWORD")
     recipients = json.loads(os.environ.get("RECIPIENTS"))
 
     # Set up SMTP object
