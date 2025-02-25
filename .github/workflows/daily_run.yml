@@ -1,8 +1,9 @@
 # This is a basic workflow that runs daily
 name: Daily run
 on:
-   schedule:
-   - cron: "0 3 * * *"
+   push:
+      branches:
+      - test/*
 
 jobs:
   execute_mail:
