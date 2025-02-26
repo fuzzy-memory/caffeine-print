@@ -153,7 +153,7 @@ def rank_news():
 
 def render_news(article_list: List[Dict[str, Any]]) -> Tuple[str, List[Dict[str, Any]]]:
     rank = 1
-    max_rank = 15 if datetime.date.today().weekday() <= 4 else 30
+    max_rank = 30 if datetime.date.today().weekday() <= 4 else 60
     article_divs = [f"<p>Today's top {max_rank} stories</p>"]
     rendered_articles = []
     for article in article_list[:max_rank]:
