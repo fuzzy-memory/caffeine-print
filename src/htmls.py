@@ -1,5 +1,8 @@
 import datetime
+import json
 from typing import List, Tuple
+
+import pandas as pd
 
 from data_models import Article
 
@@ -111,7 +114,10 @@ def make_base_html():
     return header_html, footer_html
 
 
-def render_news(article_list: List[Article]) -> Tuple[str, List[Article]]:
+def render_news(article_df: pd.DataFrame) -> Tuple[str, List[Article]]:
+    article_list = [
+        Article(**json.loads(i.to_json())) for _, i in article_df.iterrows()
+    ]
     rank = 1
     max_rank = 30 if datetime.date.today().weekday() <= 4 else 60
     article_divs = [f"<p>Today's top {max_rank} stories</p>"]
