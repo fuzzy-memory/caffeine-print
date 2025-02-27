@@ -1,6 +1,6 @@
 import json
 import time
-from typing import Dict, Optional, List
+from typing import Dict, List, Optional
 
 import numpy as np
 import pandas as pd
@@ -8,9 +8,12 @@ from openai import OpenAI
 from openai.types.chat import ChatCompletion
 from sklearn.feature_extraction.text import TfidfVectorizer
 from tenacity import retry, stop_after_attempt, wait_exponential
+
 from data_models import Article, GPTResponse
 
-max_openai_retires=5
+max_openai_retires = 5
+
+
 @retry(
     wait=wait_exponential(multiplier=2, max=600),
     stop=stop_after_attempt(max_openai_retires),
@@ -24,20 +27,20 @@ def call_model(prompt: Dict[str, str], client) -> Optional[ChatCompletion]:
 
 
 def chatgpt_ranking(test_mode: bool):
-    path_to_read="assets/"+("test/" if test_mode else "")+"news.json"
+    path_to_read = "assets/" + ("test/" if test_mode else "") + "news.json"
     news_items_raw = [
         Article(**i)
         for i in json.load(open(path_to_read, "r"))
         if all(i.get(k) is not None for k in ["title", "summary", "text"])
         and -0.8 < i.get("sentiment") <= 0.8
     ]
-    news_items=[i for i in news_items_raw if not i.is_skipped]
+    news_items = [i for i in news_items_raw if not i.is_skipped]
     if test_mode:
         print("Limiting to first 5 articles")
-        news_items=news_items[:5]
+        news_items = news_items[:5]
     client = OpenAI()
     total_time = 0
-    gpt_scored_articles:List[Article]=[]
+    gpt_scored_articles: List[Article] = []
     for article in news_items:
         start = time.time()
         prompt = {
@@ -48,9 +51,11 @@ def chatgpt_ranking(test_mode: bool):
         }
         response = call_model(prompt, client)
         if response is None:
-            print(f"Unable to retrieve reply after {max_openai_retires} retries. Skipping question: {article.id}")
+            print(
+                f"Unable to retrieve reply after {max_openai_retires} retries. Skipping question: {article.id}"
+            )
         raw_response = response.choices[0].message.content
-        article.gpt_feedback=GPTResponse(**json.loads(raw_response))
+        article.gpt_feedback = GPTResponse(**json.loads(raw_response))
         gpt_scored_articles.append(article)
         total_time += time.time() - start
     print()
@@ -83,7 +88,7 @@ def chatgpt_ranking(test_mode: bool):
         )
         relevance_scores.append(score)
     # Add scores to news items and sort
-    relevance_scored_articles=[]
+    relevance_scored_articles = []
     for i, article in enumerate(gpt_scored_articles):
         article.relevance_score = relevance_scores[i]
         relevance_scored_articles.append(article)

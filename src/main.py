@@ -3,6 +3,7 @@ import json
 import os
 import smtplib
 import ssl
+import sys
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from http import HTTPStatus
@@ -12,9 +13,10 @@ import nltk
 import pandas as pd
 import requests
 from dotenv import load_dotenv
-import sys
+
 from htmls import date, footer_html, header_html
 from ranking import chatgpt_ranking
+
 
 def get_sources_from_txt():
     sources = json.load(open("assets/news_sources.json", "r"))
@@ -96,7 +98,7 @@ def get_from_worldnewsapi_com(test_mode: bool = False):
             )
     print(f"Operation complete. Remaining quota: {remaining_quota}")
     df = pd.DataFrame(news_items).drop_duplicates(subset=["id"])
-    path_to_write="assets/"+("test/" if test_mode else "")+"news.json"
+    path_to_write = "assets/" + ("test/" if test_mode else "") + "news.json"
     df.to_json(
         path_to_write,
         index=False,
