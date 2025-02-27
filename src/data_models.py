@@ -5,7 +5,7 @@ from pydantic import BaseModel, ConfigDict, Field, model_validator
 from properties import sentiment_threshold
 
 
-class GPTArticleEvaluationModel(BaseModel):
+class GPTArticleEvaluationMetrics(BaseModel):
     indian_polity: float
     indian_economy: float
     global_current_affairs: float
@@ -25,7 +25,7 @@ class Article(BaseModel):
     url: str
     sentiment: float
     source: Optional[str] = None
-    gpt_feedback: Optional[GPTArticleEvaluationModel] = None
+    gpt_feedback: Optional[GPTArticleEvaluationMetrics] = None
     relevance_score: Optional[float] = 0.0
     is_skipped: Optional[bool] = False
 

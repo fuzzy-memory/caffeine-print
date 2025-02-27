@@ -9,8 +9,8 @@ from openai.types.chat import ChatCompletion
 from sklearn.feature_extraction.text import TfidfVectorizer
 from tenacity import retry, stop_after_attempt, wait_exponential
 
-from data_models import Article, GPTArticleEvaluationModel
 from properties import testing_gpt_threshold
+from data_models import Article, GPTArticleEvaluationMetrics
 from utils import generate_prompt
 
 max_openai_retires = 5
@@ -23,7 +23,7 @@ max_openai_retires = 5
 def call_model(prompt: List[Dict[str, str]], client) -> Optional[ChatCompletion]:
     model = "gpt-4o-mini"
     response = client.beta.chat.completions.parse(
-        model=model, messages=prompt, response_format=GPTResponseArticleEvaluationModel  # type: ignore
+        model=model, messages=prompt, response_format=GPTArticleEvaluationMetrics  # type: ignore
     )
     return response
 
@@ -48,7 +48,7 @@ def rank_via_chatgpt(news: List[Article]):
             )
             continue
         raw_response = response.choices[0].message.content
-        article.gpt_feedback = GPTArticleEvaluationModel(**json.loads(raw_response))
+        article.gpt_feedback = GPTArticleEvaluationMetrics(**json.loads(raw_response))
         scored_articles.append(article)
         total_time += time.time() - start
     print()
