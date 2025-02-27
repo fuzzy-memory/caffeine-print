@@ -106,6 +106,5 @@ def rank_articles(test_mode: bool):
         relevance_scored_articles.append(article)
 
     df = pd.DataFrame([i.to_json() for i in relevance_scored_articles])
-    df.sort_values(by="relevance_score", ascending=False, inplace=True)
-    df.reset_index(inplace=True)
+    df.sort_values(by="relevance_score", ascending=False, inplace=True, ignore_index=True)
     return df
