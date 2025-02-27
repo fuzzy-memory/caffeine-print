@@ -7,7 +7,6 @@ import sys
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from http import HTTPStatus
-from typing import Any, Dict, List, Tuple
 
 import nltk
 import pandas as pd
@@ -16,11 +15,6 @@ from dotenv import load_dotenv
 
 from htmls import get_formatted_date, render_news
 from ranking import rank_articles
-
-
-def get_sources_from_txt():
-    sources = json.load(open("assets/news_sources.json", "r"))
-    return ",".join([i.strip() for i in sources.keys()])
 
 
 def get_from_worldnewsapi_com(test_mode: bool = False):
@@ -37,7 +31,9 @@ def get_from_worldnewsapi_com(test_mode: bool = False):
     )
     offset = 0
     news_items_per_call = 100
-    news_sources = get_sources_from_txt()
+    news_sources = ",".join(
+        [i.strip() for i in json.load(open("assets/news_sources.json", "r")).keys()]
+    )
 
     # API ops
     print("Sending GET requests")
