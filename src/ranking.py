@@ -30,6 +30,7 @@ def rank_via_chatgpt(news: List[Article]):
     client = OpenAI()
     total_time = 0
     scored_articles: List[Article] = []
+    print("Sending API calls to ChatGPT")
     for article in news:
         start = time.time()
         prompt = generate_prompt(article_text=article.text)
@@ -44,10 +45,10 @@ def rank_via_chatgpt(news: List[Article]):
         total_time += time.time() - start
     print()
     print(
-        f"Retrieved {len(news)} responses in {round(total_time, 4)} seconds or {round(total_time / 60, 4)} mins"
+        f"Retrieved {len(scored_articles)} responses in {round(total_time, 4)} seconds or {round(total_time / 60, 4)} mins"
     )
     print(
-        f"Average time taken per response: {round(total_time / len(news), 4)} seconds"
+        f"Average time taken per response: {round(total_time / len(scored_articles), 4)} seconds"
     )
     return scored_articles
 
@@ -70,12 +71,17 @@ def rank_articles(test_mode: bool):
         if all(i.get(k) is not None for k in ["title", "summary", "text"])
     ]
     news_items = [i for i in news_items_raw if not i.is_skipped]
+    print(f"Parsed {len(news_items)} articles from JSON")
     if test_mode:
         final_threshold = min(len(news_items), testing_gpt_threshold)
         news_items = news_items[:final_threshold]
+        print(f"Limiting to {len(news_items)} articles")
 
     gpt_scored_articles = rank_via_chatgpt(news=news_items)
+    print(f"Generated GPT scoring for {len(gpt_scored_articles)} articles")
+
     text_scores = run_tfidf(gpt_processed_articles=gpt_scored_articles)
+    print(f"Generated TF-IDF scoring for {len(text_scores)} articles")
     sentiment_scores = [abs(i.sentiment) for i in gpt_scored_articles]
     source_scores = json.load(open("assets/news_sources.json", "r"))
 
@@ -91,12 +97,14 @@ def rank_articles(test_mode: bool):
             + weights["text"] * text_scores[i] * 100
         )
         relevance_scores.append(score)
+    print(f"Calculated {len(relevance_scores)} relevance scores")
 
     relevance_scored_articles = []
     for i, article in enumerate(gpt_scored_articles):
         article.relevance_score = relevance_scores[i]
         relevance_scored_articles.append(article)
 
+    print(f"Final scored news articles: {len(relevance_scored_articles)}")
     df = pd.DataFrame([i.to_json() for i in relevance_scored_articles])
     df.sort_values(by="relevance_score", ascending=False, inplace=True, ignore_index=True)
     return df
