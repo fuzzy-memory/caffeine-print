@@ -17,6 +17,7 @@ def generate_prompt(article_text: str) -> List[Dict[str, str]]:
                 f"\t3. Global current affairs (global_current_affairs)\n"
                 f"\t4. Geopolitics (geopolitics)\n"
                 f"\t5. To what extent does the article report a localised event? Here, 1 would represent extremely local and 10 would represent national level (indian_local_news)\n"
+                f"In case the article contains extreme descriptions of sexual assault, reduce all scores by 3."
                 f"The article is as follows:\n{article_text}"
             ),
         },
