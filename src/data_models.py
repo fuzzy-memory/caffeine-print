@@ -1,6 +1,7 @@
 from typing import Optional
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
+
 from properties import sentiment_threshold
 
 

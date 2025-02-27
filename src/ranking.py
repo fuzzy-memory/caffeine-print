@@ -8,8 +8,10 @@ from openai import OpenAI
 from openai.types.chat import ChatCompletion
 from sklearn.feature_extraction.text import TfidfVectorizer
 from tenacity import retry, stop_after_attempt, wait_exponential
-from properties import testing_gpt_threshold
+
 from data_models import Article, GPTArticleEvaluationModel
+from properties import testing_gpt_threshold
+from utils import generate_prompt
 
 max_openai_retires = 5
 
@@ -112,5 +114,10 @@ def rank_articles(test_mode: bool):
 
     print(f"Final scored news articles: {len(relevance_scored_articles)}")
     df = pd.DataFrame([i.to_json() for i in relevance_scored_articles])
-    df.sort_values(by="relevance_score", ascending=False, inplace=True, ignore_index=True)
+    df.sort_values(
+        by="relevance_score",
+        ascending=False,
+        inplace=True,
+        ignore_index=True,
+    )
     return df

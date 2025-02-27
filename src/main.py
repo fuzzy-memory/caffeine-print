@@ -107,6 +107,7 @@ def rank_news(test_mode: bool):
     sorted_articles.to_excel(f"assets/test/ranking/chatgpt_ranking.xlsx", index=False)
     return sorted_articles
 
+
 def send_email(content: str):
     date = get_formatted_date()
 
