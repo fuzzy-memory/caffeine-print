@@ -146,7 +146,7 @@ if __name__ == "__main__":
         pass
     else:
         ssl._create_default_https_context = _create_unverified_https_context
-    nltk.download("vader_lexicon")
+    nltk.download("vader_lexicon", quiet=True)
     if testing_flag:
         print("----- RUNNING IN TEST MODE -----")
     else:
