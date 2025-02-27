@@ -18,10 +18,10 @@ max_openai_retires = 5
     wait=wait_exponential(multiplier=2, max=600),
     stop=stop_after_attempt(max_openai_retires),
 )
-def call_model(prompt: Dict[str, str], client) -> Optional[ChatCompletion]:
+def call_model(prompt: List[Dict[str, str]], client) -> Optional[ChatCompletion]:
     model = "gpt-4o-mini"
     response = client.beta.chat.completions.parse(
-        model=model, messages=[prompt], response_format=GPTResponse  # type: ignore
+        model=model, messages=prompt, response_format=GPTResponse  # type: ignore
     )
     return response
 
@@ -32,14 +32,7 @@ def rank_via_chatgpt(news: List[Article]):
     scored_articles: List[Article] = []
     for article in news:
         start = time.time()
-        prompt = {
-            "role": "user",
-            "content": (
-                f"You are helping a news aggregator sift through many news articles. Does the following "
-                f"article report news that has a bearing on Indian polity, Indian economy or global current affairs? "
-                f"Respond with only `true` or `false`. The article is as follows:\n{article.text}"
-            ),
-        }
+        prompt = generate_prompt(article_text=article.text)
         response = call_model(prompt, client)
         if response is None:
             print(
