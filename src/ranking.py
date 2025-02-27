@@ -70,6 +70,16 @@ def run_tfidf(gpt_processed_articles: List[Article]):
 
     return text_scores
 
+def calculate_gpt_weighted_score(metrics:GPTArticleEvaluationMetrics):#->float:
+    metric_dict=vars(metrics)
+    assert set(metric_dict.keys())==set(gpt_category_multipliers.keys())
+    highest_scoring_metric=max(metric_dict, key=metric_dict.get)
+    multiplier=gpt_category_multipliers.get(highest_scoring_metric)
+    if not multiplier:
+        raise ValueError(f"Unable to find multiplier for metric {highest_scoring_metric}")
+    metric_sum=sum(metric_dict.values())
+    final_score=multiplier*metric_sum/(len(gpt_category_multipliers.keys()) * 10)
+    return final_score
 
 def rank_articles(test_mode: bool):
     path_to_read = "assets/" + ("test/" if test_mode else "") + "news.json"
@@ -97,10 +107,11 @@ def rank_articles(test_mode: bool):
     relevance_scores = []
     for i, article in enumerate(gpt_scored_articles):
         source_score = source_scores.get(article.source)
+        chat_gpt_weighted_score=calculate_gpt_weighted_score(article.gpt_feedback)
         score = (
             overall_weights["source"] * source_score
             + overall_weights["sentiment"] * sentiment_scores[i] * 10
-            + overall_weights["score"] * article.gpt_feedback.score
+            + overall_weights["score"] * chat_gpt_weighted_score
             + overall_weights["text"] * text_scores[i] * 100
         )
         relevance_scores.append(score)
