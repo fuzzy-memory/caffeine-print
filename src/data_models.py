@@ -4,23 +4,15 @@ from pydantic import BaseModel, ConfigDict, Field, model_validator
 from properties import sentiment_threshold
 
 
-class GPTResponse(BaseModel):
-    response: str
-    score: float
-
-    @model_validator(mode="after")
-    def __validate_gpt_response(self):
-        self.response = self.response.strip().lower()
-        if self.response == "true":
-            self.score = 9
-        elif self.response == "false":
-            self.score = 1
-        else:
-            self.score = 0.1
-        return self
+class GPTArticleEvaluationModel(BaseModel):
+    indian_polity: float
+    indian_economy: float
+    global_current_affairs: float
+    geopolitics: float
+    indian_local_news: float
 
     def __str__(self):
-        return f"[Response: {self.response} | Score: {self.score}]"
+        return f"[Polity: {self.indian_polity} | Economy: {self.indian_economy} | Global CA: {self.global_current_affairs} | Geopol: {self.geopolitics} | Local: {self.indian_local_news}]"
 
 
 class Article(BaseModel):
@@ -32,7 +24,7 @@ class Article(BaseModel):
     url: str
     sentiment: float
     source: Optional[str] = None
-    gpt_feedback: Optional[GPTResponse] = None
+    gpt_feedback: Optional[GPTArticleEvaluationModel] = None
     relevance_score: Optional[float] = 0.0
     is_skipped: Optional[bool] = False
 
