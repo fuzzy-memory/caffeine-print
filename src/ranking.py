@@ -10,7 +10,7 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from tenacity import retry, stop_after_attempt, wait_exponential
 
 from data_models import Article, GPTArticleEvaluationMetrics
-from properties import testing_gpt_threshold, overall_weights, gpt_category_multipliers
+from properties import gpt_category_multipliers, overall_weights, testing_gpt_threshold
 from utils import generate_prompt
 
 max_openai_retires = 5
@@ -70,16 +70,20 @@ def run_tfidf(gpt_processed_articles: List[Article]):
 
     return text_scores
 
-def calculate_gpt_weighted_score(metrics:GPTArticleEvaluationMetrics):#->float:
-    metric_dict=vars(metrics)
-    assert set(metric_dict.keys())==set(gpt_category_multipliers.keys())
-    highest_scoring_metric=max(metric_dict, key=metric_dict.get)
-    multiplier=gpt_category_multipliers.get(highest_scoring_metric)
+
+def calculate_gpt_weighted_score(metrics: GPTArticleEvaluationMetrics):  # ->float:
+    metric_dict = vars(metrics)
+    assert set(metric_dict.keys()) == set(gpt_category_multipliers.keys())
+    highest_scoring_metric = max(metric_dict, key=metric_dict.get)
+    multiplier = gpt_category_multipliers.get(highest_scoring_metric)
     if not multiplier:
-        raise ValueError(f"Unable to find multiplier for metric {highest_scoring_metric}")
-    metric_sum=sum(metric_dict.values())
-    final_score=multiplier*metric_sum/(len(gpt_category_multipliers.keys()) * 10)
+        raise ValueError(
+            f"Unable to find multiplier for metric {highest_scoring_metric}"
+        )
+    metric_sum = sum(metric_dict.values())
+    final_score = multiplier * metric_sum / (len(gpt_category_multipliers.keys()) * 10)
     return final_score
+
 
 def rank_articles(test_mode: bool):
     path_to_read = "assets/" + ("test/" if test_mode else "") + "news.json"
@@ -92,7 +96,7 @@ def rank_articles(test_mode: bool):
     print(f"Parsed {len(news_items)} articles from JSON")
     if test_mode:
         if not testing_gpt_threshold:
-            final_threshold=len(news_items)
+            final_threshold = len(news_items)
         else:
             final_threshold = min(len(news_items), testing_gpt_threshold)
         news_items = news_items[:final_threshold]
@@ -110,7 +114,7 @@ def rank_articles(test_mode: bool):
     relevance_scores = []
     for i, article in enumerate(gpt_scored_articles):
         source_score = source_scores.get(article.source)
-        chat_gpt_weighted_score=calculate_gpt_weighted_score(article.gpt_feedback)
+        chat_gpt_weighted_score = calculate_gpt_weighted_score(article.gpt_feedback)
         score = (
             overall_weights["source"] * source_score
             + overall_weights["sentiment"] * sentiment_scores[i] * 10
