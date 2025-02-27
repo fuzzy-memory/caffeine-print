@@ -91,7 +91,10 @@ def rank_articles(test_mode: bool):
     news_items = [i for i in news_items_raw if not i.is_skipped]
     print(f"Parsed {len(news_items)} articles from JSON")
     if test_mode:
-        final_threshold = min(len(news_items), testing_gpt_threshold)
+        if not testing_gpt_threshold:
+            final_threshold=len(news_items)
+        else:
+            final_threshold = min(len(news_items), testing_gpt_threshold)
         news_items = news_items[:final_threshold]
         print(f"Limiting to {len(news_items)} articles")
 
