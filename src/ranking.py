@@ -58,6 +58,7 @@ def rank_via_chatgpt(news: List[Article]):
     )
     return scored_articles
 
+
 def run_tfidf(gpt_processed_articles: List[Article]):
     tfidf = TfidfVectorizer(stop_words="english")
     texts = [i.text.lower() for i in gpt_processed_articles]
@@ -66,6 +67,7 @@ def run_tfidf(gpt_processed_articles: List[Article]):
     text_scores = np.mean(text_tfidf_matrix.toarray(), axis=1)
 
     return text_scores
+
 
 def rank_articles(test_mode: bool):
     path_to_read = "assets/" + ("test/" if test_mode else "") + "news.json"
@@ -76,12 +78,12 @@ def rank_articles(test_mode: bool):
     ]
     news_items = [i for i in news_items_raw if not i.is_skipped]
     if test_mode:
-        final_threshold=max(len(news_items), testing_gpt_threshold)
+        final_threshold = max(len(news_items), testing_gpt_threshold)
         print(f"Limiting to first {final_threshold} articles")
         news_items = news_items[:final_threshold]
 
     gpt_scored_articles = rank_via_chatgpt(news=news_items)
-    text_scores=run_tfidf(gpt_processed_articles=gpt_scored_articles)
+    text_scores = run_tfidf(gpt_processed_articles=gpt_scored_articles)
     sentiment_scores = [abs(i.sentiment) for i in gpt_scored_articles]
     source_scores = json.load(open("assets/news_sources.json", "r"))
 
@@ -91,10 +93,10 @@ def rank_articles(test_mode: bool):
     for i, article in enumerate(gpt_scored_articles):
         source_score = source_scores.get(article.source)
         score = (
-                weights["source"] * source_score
-                + weights["sentiment"] * sentiment_scores[i] * 10
-                + weights["score"] * article.gpt_feedback.score
-                + weights["text"] * text_scores[i] * 100
+            weights["source"] * source_score
+            + weights["sentiment"] * sentiment_scores[i] * 10
+            + weights["score"] * article.gpt_feedback.score
+            + weights["text"] * text_scores[i] * 100
         )
         relevance_scores.append(score)
 
@@ -104,6 +106,6 @@ def rank_articles(test_mode: bool):
         relevance_scored_articles.append(article)
 
     df = pd.DataFrame([i.to_json() for i in relevance_scored_articles])
-    df.sort_values(by='relevance_score', ascending=False, inplace=True)
+    df.sort_values(by="relevance_score", ascending=False, inplace=True)
     df.reset_index(inplace=True)
     return df

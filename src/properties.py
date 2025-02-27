@@ -1,2 +1,2 @@
-sentiment_threshold=0.75
-testing_gpt_threshold=100
+sentiment_threshold = 0.75
+testing_gpt_threshold = 100
