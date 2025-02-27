@@ -14,8 +14,8 @@ import pandas as pd
 import requests
 from dotenv import load_dotenv
 
-from htmls import date, footer_html, header_html
-from ranking import chatgpt_ranking
+from htmls import get_formatted_date, render_news
+from ranking import rank_articles
 
 
 def get_sources_from_txt():
@@ -106,81 +106,14 @@ def get_from_worldnewsapi_com(test_mode: bool = False):
     )
 
 
-def rank_news():
-    news_items = [
-        i
-        for i in json.load(open("assets/news.json", "r"))
-        if i.get("title") is not None and i.get("summary") is not None
-    ]
-
-    # TF IDF Vectorizer
-    tfidf = TfidfVectorizer(stop_words="english")
-    titles = [i.get("title") for i in news_items]
-    summaries = [i.get("summary").lower() for i in news_items]
-
-    # Fit TF-IDF Model
-    title_tfidf_matrix = tfidf.fit_transform(titles)
-    summary_tfidf_matrix = tfidf.fit_transform(summaries)
-
-    # Normalize and Extract Scores
-    title_scores = np.mean(title_tfidf_matrix.toarray(), axis=1)
-    summary_scores = np.mean(summary_tfidf_matrix.toarray(), axis=1)
-    sentiment_scores = [i.get("sentiment") for i in news_items]
-    source_scores = json.load(open("assets/news_sources.json", "r"))
-
-    # Compute final relevance
-    weights = {"title": 0.3, "source": 0.3, "summary": 0.2, "sentiment": 0.2}
-    relevance_scores = []
-
-    for i, article in enumerate(news_items):
-        source_score = source_scores.get(
-            "https://" + article["url"].replace("https://", "").split("/")[0]
-        )
-        score = (
-            weights["title"] * title_scores[i] * 100
-            + weights["source"] * source_score
-            + weights["summary"] * summary_scores[i] * 100
-            + weights["sentiment"] * sentiment_scores[i] * 100
-        )
-        relevance_scores.append(score)
-
-    # Add scores to news items and sort
-    for i, article in enumerate(news_items):
-        article["relevance_score"] = relevance_scores[i]
-
-    sorted_articles = sorted(
-        news_items, key=lambda x: x["relevance_score"], reverse=True
-    )
+def rank_news(test_mode: bool):
+    sorted_articles = rank_articles(test_mode)
+    sorted_articles.to_excel(f"assets/test/ranking/chatgpt_ranking.xlsx", index=False)
     return sorted_articles
 
-
-def render_news(article_list: List[Dict[str, Any]]) -> Tuple[str, List[Dict[str, Any]]]:
-    rank = 1
-    max_rank = 30 if datetime.date.today().weekday() <= 4 else 60
-    article_divs = [f"<p>Today's top {max_rank} stories</p>"]
-    rendered_articles = []
-    for article in article_list[:max_rank]:
-        div = f"""
-            <a href={article.get("url")} class="article-card" target="_blank">
-                <div class="article-number">{rank}</div>
-                <div class="article-content">
-                    <div class="article-title">{article.get("title")}</div>
-                    <div class="article-summary">{article.get("summary")}</div>
-                </div>
-            </a>
-            """
-        article_divs.append(div)
-        rendered_articles.append(article.get("id"))
-        rank += 1
-
-    article_html = header_html + "\n".join(article_divs) + footer_html
-    # with open("src/sample.html", "w") as f:
-    #     f.write(article_html)
-    remaining = [i for i in article_list if i.get("id") not in rendered_articles]
-    return article_html, remaining
-
-
 def send_email(content: str):
+    date = get_formatted_date()
+
     sender_email = os.environ.get("SENDER_EMAIL")
     app_password = os.environ.get("GMAIL_APP_PASSWORD")
     recipients = json.loads(os.environ.get("RECIPIENTS"))
@@ -218,8 +151,8 @@ if __name__ == "__main__":
         print("----- RUNNING IN TEST MODE -----")
     else:
         print("Running script")
-    get_from_worldnewsapi_com()
-    sorted_news = rank_news()
+    get_from_worldnewsapi_com(test_mode=testing_flag)
+    sorted_news = rank_news(test_mode=testing_flag)
     complete_html, skipped_articles = render_news(article_list=sorted_news)
     send_email(content=complete_html)
     print("Emails sent :)")
