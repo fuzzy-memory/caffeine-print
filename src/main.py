@@ -102,10 +102,10 @@ def get_from_worldnewsapi_com(test_mode: bool = False):
     )
 
 
-def rank_news(test_mode: bool):
-    sorted_articles = rank_articles(test_mode)
-    sorted_articles.to_excel(f"assets/test/ranking/chatgpt_ranking.xlsx", index=False)
-    return sorted_articles
+# def rank_news(test_mode: bool):
+#     sorted_articles = rank_articles(test_mode)
+#     sorted_articles.to_excel(f"assets/test/ranking/chatgpt_ranking.xlsx", index=False)
+#     return sorted_articles
 
 
 def send_email(content: str):
@@ -151,7 +151,7 @@ if __name__ == "__main__":
         print("----- Running script -----")
     get_from_worldnewsapi_com(test_mode=testing_flag)
     print("----------")
-    sorted_news = rank_news(test_mode=testing_flag)
+    sorted_news = rank_articles(test_mode=testing_flag)
     print("----------")
     complete_html, skipped_articles = render_news(article_df=sorted_news)
     send_email(content=complete_html)
