@@ -78,8 +78,7 @@ def rank_articles(test_mode: bool):
     ]
     news_items = [i for i in news_items_raw if not i.is_skipped]
     if test_mode:
-        final_threshold = max(len(news_items), testing_gpt_threshold)
-        print(f"Limiting to first {final_threshold} articles")
+        final_threshold = min(len(news_items), testing_gpt_threshold)
         news_items = news_items[:final_threshold]
 
     gpt_scored_articles = rank_via_chatgpt(news=news_items)
