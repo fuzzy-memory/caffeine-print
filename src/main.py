@@ -132,6 +132,7 @@ def send_email(content: str):
         from_addr=sender_email, to_addrs=recipients, msg=message.as_string()
     )
     smtp_server.close()
+    print("Emails sent :)")
 
 
 if __name__ == "__main__":
@@ -147,9 +148,10 @@ if __name__ == "__main__":
     if testing_flag:
         print("----- RUNNING IN TEST MODE -----")
     else:
-        print("Running script")
+        print("----- Running script -----")
     get_from_worldnewsapi_com(test_mode=testing_flag)
+    print("----------")
     sorted_news = rank_news(test_mode=testing_flag)
+    print("----------")
     complete_html, skipped_articles = render_news(article_list=sorted_news)
     send_email(content=complete_html)
-    print("Emails sent :)")
