@@ -26,7 +26,40 @@ def call_model(prompt: Dict[str, str], client) -> Optional[ChatCompletion]:
     return response
 
 
-def chatgpt_ranking(test_mode: bool):
+def rank_via_chatgpt(news: List[Article]):
+    client = OpenAI()
+    total_time = 0
+    scored_articles: List[Article] = []
+    for article in news:
+        start = time.time()
+        prompt = {
+            "role": "user",
+            "content": (
+                f"You are helping a news aggregator sift through many news articles. Does the following "
+                f"article report news that has a bearing on Indian polity, Indian economy or global current affairs? "
+                f"Respond with only `true` or `false`. The article is as follows:\n{article.text}"
+            ),
+        }
+        response = call_model(prompt, client)
+        if response is None:
+            print(
+                f"Unable to retrieve reply after {max_openai_retires} retries. Skipping question: {article.id}"
+            )
+        raw_response = response.choices[0].message.content
+        article.gpt_feedback = GPTResponse(**json.loads(raw_response))
+        scored_articles.append(article)
+        total_time += time.time() - start
+    print()
+    print(
+        f"Retrieved {len(news)} responses in {round(total_time, 4)} seconds or {round(total_time / 60, 4)} mins"
+    )
+    print(
+        f"Average time taken per response: {round(total_time / len(news), 4)} seconds"
+    )
+    return scored_articles
+
+
+def rank_articles(test_mode: bool):
     path_to_read = "assets/" + ("test/" if test_mode else "") + "news.json"
     news_items_raw = [
         Article(**i)
@@ -38,34 +71,10 @@ def chatgpt_ranking(test_mode: bool):
     if test_mode:
         print("Limiting to first 5 articles")
         news_items = news_items[:5]
-    client = OpenAI()
-    total_time = 0
-    gpt_scored_articles: List[Article] = []
-    for article in news_items:
-        start = time.time()
-        prompt = {
-            "role": "user",
-            "content": f"""You are helping a news aggregator sift through many news articles. Does the following 
-            article report news that has a bearing on Indian polity, Indian economy or global current affairs? Respond 
-            with only `true` or `false`. The article is as follows:\n{article.text}""",
-        }
-        response = call_model(prompt, client)
-        if response is None:
-            print(
-                f"Unable to retrieve reply after {max_openai_retires} retries. Skipping question: {article.id}"
-            )
-        raw_response = response.choices[0].message.content
-        article.gpt_feedback = GPTResponse(**json.loads(raw_response))
-        gpt_scored_articles.append(article)
-        total_time += time.time() - start
-    print()
-    print(
-        f"Retrieved {len(news_items)} responses in {round(total_time, 4)} seconds or {round(total_time/60, 4)} mins"
-    )
-    print(
-        f"Average time taken per response: {round(total_time / len(news_items), 4)} seconds"
-    )
 
+    gpt_scored_articles = rank_via_chatgpt(news=news_items)
+
+    # Run TF-IDF on article text
     tfidf = TfidfVectorizer(stop_words="english")
     texts = [i.text.lower() for i in gpt_scored_articles]
 
@@ -87,7 +96,7 @@ def chatgpt_ranking(test_mode: bool):
             + weights["text"] * text_scores[i] * 100
         )
         relevance_scores.append(score)
-    # Add scores to news items and sort
+
     relevance_scored_articles = []
     for i, article in enumerate(gpt_scored_articles):
         article.relevance_score = relevance_scores[i]
