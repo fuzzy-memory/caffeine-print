@@ -12,7 +12,7 @@ import nltk
 import pandas as pd
 import requests
 from dotenv import load_dotenv
-
+import sys
 from htmls import date, footer_html, header_html
 from ranking import chatgpt_ranking
 
@@ -21,7 +21,7 @@ def get_sources_from_txt():
     return ",".join([i.strip() for i in sources.keys()])
 
 
-def get_from_worldnewsapi_com():
+def get_from_worldnewsapi_com(test_mode: bool = False):
     # Set vars
     api_key = os.environ.get("WORLDNEWSAPI_KEY")
     url = "https://api.worldnewsapi.com/search-news"
@@ -71,6 +71,8 @@ def get_from_worldnewsapi_com():
 
     # Pagination calls
     while True:
+        if test_mode:
+            break
         if remaining_items <= 0 or remaining_quota <= 1:
             break
         params.update({"offset": offset, "number": news_items_per_call})
@@ -94,8 +96,9 @@ def get_from_worldnewsapi_com():
             )
     print(f"Operation complete. Remaining quota: {remaining_quota}")
     df = pd.DataFrame(news_items).drop_duplicates(subset=["id"])
+    path_to_write="assets/"+("test/" if test_mode else "")+"news.json"
     df.to_json(
-        f"assets/news.json",
+        path_to_write,
         index=False,
         orient="records",
     )
@@ -200,6 +203,7 @@ def send_email(content: str):
 
 
 if __name__ == "__main__":
+    testing_flag = sys.argv[1] == "1"  # Cmd line arg; Set as 1 to enable testing mode
     load_dotenv()
     try:
         _create_unverified_https_context = ssl._create_unverified_context
@@ -208,7 +212,10 @@ if __name__ == "__main__":
     else:
         ssl._create_default_https_context = _create_unverified_https_context
     nltk.download("vader_lexicon")
-    print("Running script")
+    if testing_flag:
+        print("----- RUNNING IN TEST MODE -----")
+    else:
+        print("Running script")
     get_from_worldnewsapi_com()
     sorted_news = rank_news()
     complete_html, skipped_articles = render_news(article_list=sorted_news)
