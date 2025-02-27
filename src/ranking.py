@@ -86,15 +86,15 @@ def rank_articles(test_mode: bool):
     source_scores = json.load(open("assets/news_sources.json", "r"))
 
     # Compute final relevance
-    weights = {"source": 0.1, "sentiment": 0.05, "text": 0.2, "score": 0.65}
+    weights = {"source": 0.05, "sentiment": 0.05, "text": 0.2, "score": 0.7}
     relevance_scores = []
     for i, article in enumerate(gpt_scored_articles):
         source_score = source_scores.get(article.source)
         score = (
-            weights["source"] * source_score
-            + weights["sentiment"] * sentiment_scores[i] * 100
-            + weights["score"] * article.gpt_feedback.score
-            + weights["text"] * text_scores[i] * 100
+                weights["source"] * source_score
+                + weights["sentiment"] * sentiment_scores[i] * 10
+                + weights["score"] * article.gpt_feedback.score
+                + weights["text"] * text_scores[i] * 100
         )
         relevance_scores.append(score)
 
