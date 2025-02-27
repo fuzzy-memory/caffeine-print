@@ -58,6 +58,14 @@ def rank_via_chatgpt(news: List[Article]):
     )
     return scored_articles
 
+def run_tfidf(gpt_processed_articles: List[Article]):
+    tfidf = TfidfVectorizer(stop_words="english")
+    texts = [i.text.lower() for i in gpt_processed_articles]
+
+    text_tfidf_matrix = tfidf.fit_transform(texts)
+    text_scores = np.mean(text_tfidf_matrix.toarray(), axis=1)
+
+    return text_scores
 
 def rank_articles(test_mode: bool):
     path_to_read = "assets/" + ("test/" if test_mode else "") + "news.json"
@@ -73,14 +81,7 @@ def rank_articles(test_mode: bool):
         news_items = news_items[:5]
 
     gpt_scored_articles = rank_via_chatgpt(news=news_items)
-
-    # Run TF-IDF on article text
-    tfidf = TfidfVectorizer(stop_words="english")
-    texts = [i.text.lower() for i in gpt_scored_articles]
-
-    text_tfidf_matrix = tfidf.fit_transform(texts)
-
-    text_scores = np.mean(text_tfidf_matrix.toarray(), axis=1)
+    text_scores=run_tfidf(gpt_processed_articles=gpt_scored_articles)
     sentiment_scores = [abs(i.sentiment) for i in gpt_scored_articles]
     source_scores = json.load(open("assets/news_sources.json", "r"))
 
