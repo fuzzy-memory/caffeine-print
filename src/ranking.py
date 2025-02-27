@@ -8,6 +8,7 @@ from openai import OpenAI
 from openai.types.chat import ChatCompletion
 from sklearn.feature_extraction.text import TfidfVectorizer
 from tenacity import retry, stop_after_attempt, wait_exponential
+from tqdm import tqdm
 
 from data_models import Article, GPTArticleEvaluationMetrics
 from properties import gpt_category_multipliers, overall_weights, testing_gpt_threshold
@@ -33,7 +34,7 @@ def rank_via_chatgpt(news: List[Article]):
     total_time = 0
     scored_articles: List[Article] = []
     print("Sending API calls to ChatGPT")
-    for article in news:
+    for article in tqdm(news):
         start = time.time()
         prompt = generate_prompt(article_text=article.text)
         response = call_model(prompt, client)
