@@ -39,6 +39,12 @@ def rank_via_chatgpt(news: List[Article]):
             print(
                 f"Unable to retrieve reply after {max_openai_retires} retries. Skipping question: {article.id}"
             )
+            continue
+        if response.choices[0].message.refusal:
+            print(
+                f"Refusal encountered for {article.id}: {response.choices[0].message.refusal}"
+            )
+            continue
         raw_response = response.choices[0].message.content
         article.gpt_feedback = GPTArticleEvaluationModel(**json.loads(raw_response))
         scored_articles.append(article)
