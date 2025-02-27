@@ -48,6 +48,7 @@ class Article(BaseModel):
         return f"{prefix}{st}{suffix}"
 
     def to_json(self):
-        return {
-            k: (v if k != "gpt_feedback" else vars(v)) for k, v in vars(self).items()
-        }
+        base_dict = {k: v for k, v in vars(self).items() if k != "gpt_feedback"}
+        if self.gpt_feedback:
+            base_dict.update(vars(self.gpt_feedback))
+        return base_dict
