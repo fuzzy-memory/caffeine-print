@@ -8,7 +8,7 @@ from openai import OpenAI
 from openai.types.chat import ChatCompletion
 from sklearn.feature_extraction.text import TfidfVectorizer
 from tenacity import retry, stop_after_attempt, wait_exponential
-
+from properties import testing_gpt_threshold
 from data_models import Article, GPTResponse
 
 max_openai_retires = 5
@@ -73,12 +73,12 @@ def rank_articles(test_mode: bool):
         Article(**i)
         for i in json.load(open(path_to_read, "r"))
         if all(i.get(k) is not None for k in ["title", "summary", "text"])
-        and -0.8 < i.get("sentiment") <= 0.8
     ]
     news_items = [i for i in news_items_raw if not i.is_skipped]
     if test_mode:
-        print("Limiting to first 5 articles")
-        news_items = news_items[:5]
+        final_threshold=max(len(news_items), testing_gpt_threshold)
+        print(f"Limiting to first {final_threshold} articles")
+        news_items = news_items[:final_threshold]
 
     gpt_scored_articles = rank_via_chatgpt(news=news_items)
     text_scores=run_tfidf(gpt_processed_articles=gpt_scored_articles)

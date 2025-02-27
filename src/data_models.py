@@ -1,7 +1,7 @@
 from typing import Optional
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
-
+from properties import sentiment_threshold
 
 class GPTResponse(BaseModel):
     response: str
@@ -44,7 +44,7 @@ class Article(BaseModel):
 
         self.is_skipped = any(
             len(i) == 0 for i in [self.text, self.summary, self.title]
-        )
+        ) or abs(self.sentiment)>=sentiment_threshold
         return self
 
     def __str__(self):
