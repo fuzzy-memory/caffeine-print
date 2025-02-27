@@ -28,6 +28,7 @@ class Article(BaseModel):
     summary:str
     url:str
     sentiment: float
+    source: Optional[str]=None
     gpt_feedback: Optional[GPTResponse]=None
     relevance_score: Optional[float]=0.0
     is_skipped: Optional[bool]=False
@@ -37,6 +38,7 @@ class Article(BaseModel):
         self.title=self.title.strip()
         self.text=self.text.strip()
         self.summary=self.summary.strip()
+        self.source="https://" + self.url.replace("https://", "").split("/")[0]
 
         self.is_skipped= any(len(i)==0 for i in [self.text, self.summary, self.title])
         return self
@@ -45,4 +47,7 @@ class Article(BaseModel):
         st=f"Article #{self.id}: {self.title}"
         prefix="[SKIPPED] " if self.is_skipped else f"[Rel {self.relevance_score}] "
         suffix=f" | Feedback: {str(self.gpt_feedback)}" if self.gpt_feedback else ""
-        return f"{prefix}{st}"
+        return f"{prefix}{st}{suffix}"
+
+    def to_json(self):
+        return {k:(v if k!="gpt_feedback" else vars(v)) for k,v in vars(self).items()}
