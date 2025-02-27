@@ -9,14 +9,12 @@ from http import HTTPStatus
 from typing import Any, Dict, List, Tuple
 
 import nltk
-import numpy as np
 import pandas as pd
 import requests
 from dotenv import load_dotenv
-from sklearn.feature_extraction.text import TfidfVectorizer
 
 from htmls import date, footer_html, header_html
-
+from ranking import chatgpt_ranking
 
 def get_sources_from_txt():
     sources = json.load(open("assets/news_sources.json", "r"))
