@@ -102,8 +102,8 @@ def rank_articles(test_mode: bool):
     for i, article in enumerate(gpt_scored_articles):
         article.relevance_score = relevance_scores[i]
         relevance_scored_articles.append(article)
-    sorted_articles = sorted(
-        relevance_scored_articles, key=lambda x: x.relevance_score, reverse=True
-    )
-    df = pd.DataFrame([i.to_json() for i in sorted_articles])
+
+    df = pd.DataFrame([i.to_json() for i in relevance_scored_articles])
+    df.sort_values(by='relevance_score', ascending=False, inplace=True)
+    df.reset_index(inplace=True)
     return df
