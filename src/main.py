@@ -7,8 +7,9 @@ import sys
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from http import HTTPStatus
+from typing import Any, Dict
 
-import nltk
+import nltk  # type: ignore
 import pandas as pd
 import requests
 from dotenv import load_dotenv
@@ -46,7 +47,7 @@ def get_from_worldnewsapi_com(test_mode: bool = False):
     # API ops
     print("Sending GET requests")
     headers = {"x-api-key": api_key}
-    params = {
+    params: Dict[str, Any] = {
         "source-country": "in",
         "language": "en",
         "earliest-publish-date": earliest,
@@ -66,7 +67,7 @@ def get_from_worldnewsapi_com(test_mode: bool = False):
         offset += news_items_per_call
         total_items = first_response.json().get("available")
         remaining_items = total_items - offset
-        remaining_quota = float(first_response.headers.get("X-API-Quota-Left"))
+        remaining_quota = float(first_response.headers.get("X-API-Quota-Left"))  # type: ignore
         print(
             f"Found {first_response.json().get('available')} articles\nRetrieved {offset} items in total. {remaining_items} items to go"
         )
@@ -90,7 +91,7 @@ def get_from_worldnewsapi_com(test_mode: bool = False):
             news_items.extend(next_response.json().get("news"))
             remaining_items -= received
             offset += news_items_per_call
-            remaining_quota = float(first_response.headers.get("X-API-Quota-Left"))
+            remaining_quota = float(first_response.headers.get("X-API-Quota-Left"))  # type: ignore
             print(
                 f"Retrieved {len(news_items)} items in total. "
                 + (f"{remaining_items} to go" if remaining_items >= 0 else "")
@@ -121,7 +122,10 @@ def send_email(content: str):
 
     sender_email = os.environ.get("SENDER_EMAIL")
     app_password = os.environ.get("GMAIL_APP_PASSWORD")
-    recipients = json.loads(os.environ.get("RECIPIENTS"))
+    recipients_raw = os.environ.get("RECIPIENTS")
+    if not sender_email or not app_password or not recipients_raw:
+        raise ValueError("All required mailing vars not found in .env")
+    recipients = json.loads(recipients_raw)
 
     # Set up SMTP object
     smtp_server = smtplib.SMTP_SSL("smtp.gmail.com", 465)

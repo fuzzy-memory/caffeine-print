@@ -7,7 +7,7 @@ import numpy as np
 import pandas as pd
 from openai import OpenAI
 from openai.types.chat import ChatCompletion
-from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.feature_extraction.text import TfidfVectorizer  # type: ignore
 from tenacity import retry, stop_after_attempt, wait_exponential
 from tqdm import tqdm
 
@@ -32,7 +32,7 @@ def call_model(prompt: List[Dict[str, str]], client) -> Optional[ChatCompletion]
 
 def rank_via_chatgpt(news: List[Article]):
     client = OpenAI()
-    total_time = 0
+    total_time = 0.0
     scored_articles: List[Article] = []
     print("Sending API calls to ChatGPT")
     for article in tqdm(news):
@@ -49,7 +49,16 @@ def rank_via_chatgpt(news: List[Article]):
                 f"Refusal encountered for {article.id}: {response.choices[0].message.refusal}"
             )
             continue
+
         raw_response = response.choices[0].message.content
+        if not raw_response:
+            raise ValueError(
+                f"No response received from ChatGPT API for article ID {article.id}"
+            )
+        if not isinstance(raw_response, str):
+            raise TypeError(
+                f"Response of unknown type returned by ChatGPT API: {type(raw_response)}"
+            )
         article.gpt_feedback = GPTArticleEvaluationMetrics(**json.loads(raw_response))
         scored_articles.append(article)
         total_time += time.time() - start
@@ -73,10 +82,10 @@ def run_tfidf(gpt_processed_articles: List[Article]):
     return text_scores
 
 
-def calculate_gpt_weighted_score(metrics: GPTArticleEvaluationMetrics):  # ->float:
+def calculate_gpt_weighted_score(metrics: GPTArticleEvaluationMetrics) -> float:
     metric_dict = vars(metrics)
     assert set(metric_dict.keys()) == set(gpt_category_multipliers.keys())
-    highest_scoring_metric = max(metric_dict, key=metric_dict.get)
+    highest_scoring_metric = max(metric_dict, key=metric_dict.get)  # type: ignore
     multiplier = gpt_category_multipliers.get(highest_scoring_metric)
     if not multiplier:
         raise ValueError(
