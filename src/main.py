@@ -18,6 +18,14 @@ from ranking import rank_articles
 
 
 def get_from_worldnewsapi_com(test_mode: bool = False):
+    if test_mode:
+        dir_path = "assets/test/"
+        pth = os.path.join(os.path.curdir, dir_path)
+        if "news.json" in os.listdir(pth):
+            item_count=len(json.load(open("assets/test/news.json", "r")))
+            print(f"{item_count} articles already extracted in `assets/test`")
+            return
+
     # Set vars
     api_key = os.environ.get("WORLDNEWSAPI_KEY")
     url = "https://api.worldnewsapi.com/search-news"

@@ -13,6 +13,7 @@ from tqdm import tqdm
 from data_models import Article, GPTArticleEvaluationMetrics
 from properties import gpt_category_multipliers, overall_weights, testing_gpt_threshold
 from utils import generate_prompt
+import os
 
 max_openai_retires = 5
 
@@ -87,6 +88,14 @@ def calculate_gpt_weighted_score(metrics: GPTArticleEvaluationMetrics):  # ->flo
 
 
 def rank_articles(test_mode: bool):
+    if test_mode:
+        dir_path = "assets/test/"
+        pth = os.path.join(os.path.curdir, dir_path)
+        if "chatgpt_ranking.json" in os.listdir(pth):
+            df=pd.read_json("assets/test/chatgpt_ranking.json")
+            print(f"{df.shape[0]} ranked articles already exist in `assets/test`")
+            return df
+
     path_to_read = "assets/" + ("test/" if test_mode else "") + "news.json"
     news_items_raw = [
         Article(**i)
@@ -138,4 +147,6 @@ def rank_articles(test_mode: bool):
         inplace=True,
         ignore_index=True,
     )
+    if test_mode:
+        df.to_json("assets/test/chatgpt_ranking.json", orient="records")
     return df
