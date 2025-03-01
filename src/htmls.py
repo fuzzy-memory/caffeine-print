@@ -1,5 +1,6 @@
 import datetime
 import json
+import re
 from typing import List, Tuple
 
 import pandas as pd
@@ -123,12 +124,18 @@ def render_news(article_df: pd.DataFrame) -> Tuple[str, List[Article]]:
     article_divs = [f"<p>Today's top {max_rank} stories</p>"]
     rendered_articles = []
     for article in article_list[:max_rank]:
+        summary_render = (
+            article.summary
+            if "".join(re.findall(r"\w", article.title)).lower()
+            != "".join(re.findall(r"\w", article.summary)).lower()
+            else ""
+        )
         div = f"""
             <a href={article.url} class="article-card" target="_blank">
                 <div class="article-number">{rank}</div>
                 <div class="article-content">
                     <div class="article-title">{article.title}</div>
-                    <div class="article-summary">{article.summary}</div>
+                    <div class="article-summary">{summary_render}</div>
                 </div>
             </a>
             """
