@@ -39,8 +39,8 @@ def pick_article_from_cluster(articles: List[Article]):
                 clustered_articles.update({cluster_id: article})
             # If the source rank is the same, prefer the longer summary
             elif source_rank == existing_source_rank and len(
-                preprocess_text(article.summary)
-            ) > len(preprocess_text(existing_article.summary)):
+                article.bert_processed_text
+            ) > len(existing_article.bert_processed_text):
                 clustered_articles.update({cluster_id: article})
 
     return list(clustered_articles.values())
