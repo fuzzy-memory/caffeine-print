@@ -115,7 +115,10 @@ def make_base_html():
     return header_html, footer_html
 
 
-def render_news(article_df: pd.DataFrame) -> Tuple[str, List[Article]]:
+def render_news(
+    article_df: pd.DataFrame,
+    test_mode: bool = False,
+) -> Tuple[str, List[Article]]:
     article_list = [
         Article(**json.loads(i.to_json())) for _, i in article_df.iterrows()
     ]
@@ -144,7 +147,8 @@ def render_news(article_df: pd.DataFrame) -> Tuple[str, List[Article]]:
         rank += 1
     header_html, footer_html = make_base_html()
     article_html = header_html + "\n".join(article_divs) + footer_html
-    # with open("src/sample.html", "w") as f:
-    #     f.write(article_html)
+    if test_mode:
+        with open("assets/test/render.html", "w") as f:
+            f.write(article_html)
     remaining = [i for i in article_list if i.id not in rendered_articles]
     return article_html, remaining

@@ -165,5 +165,7 @@ if __name__ == "__main__":
     print("----------")
     sorted_news = rank_articles(test_mode=testing_flag)
     print("----------")
-    complete_html, skipped_articles = render_news(article_df=sorted_news)
+    complete_html, skipped_articles = render_news(
+        article_df=sorted_news, test_mode=testing_flag
+    )
     send_email(content=complete_html)
