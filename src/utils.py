@@ -6,7 +6,7 @@ def generate_prompt(article_text: str) -> List[Dict[str, str]]:
         {
             "role": "system",
             "content": "You are a helpful assistant to a news aggregator sorting through many news articles. Rate the "
-                       "given articles on the provided metrics as truthfully as possible.",
+            "given articles on the provided metrics as truthfully as possible.",
         },
         {
             "role": "user",

@@ -1,4 +1,5 @@
 sentiment_threshold = 0.75
+dbscan_epsilon = 0.25
 testing_gpt_threshold = 5
 overall_weights = {
     "source": 0.05,

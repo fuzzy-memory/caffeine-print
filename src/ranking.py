@@ -1,4 +1,5 @@
 import json
+import os
 import time
 from typing import Dict, List, Optional
 
@@ -6,7 +7,7 @@ import numpy as np
 import pandas as pd
 from openai import OpenAI
 from openai.types.chat import ChatCompletion
-from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.feature_extraction.text import TfidfVectorizer  # type: ignore
 from tenacity import retry, stop_after_attempt, wait_exponential
 from tqdm import tqdm
 
@@ -31,7 +32,7 @@ def call_model(prompt: List[Dict[str, str]], client) -> Optional[ChatCompletion]
 
 def rank_via_chatgpt(news: List[Article]):
     client = OpenAI()
-    total_time = 0
+    total_time = 0.0
     scored_articles: List[Article] = []
     print("Sending API calls to ChatGPT")
     for article in tqdm(news):
@@ -48,7 +49,16 @@ def rank_via_chatgpt(news: List[Article]):
                 f"Refusal encountered for {article.id}: {response.choices[0].message.refusal}"
             )
             continue
+
         raw_response = response.choices[0].message.content
+        if not raw_response:
+            raise ValueError(
+                f"No response received from ChatGPT API for article ID {article.id}"
+            )
+        if not isinstance(raw_response, str):
+            raise TypeError(
+                f"Response of unknown type returned by ChatGPT API: {type(raw_response)}"
+            )
         article.gpt_feedback = GPTArticleEvaluationMetrics(**json.loads(raw_response))
         scored_articles.append(article)
         total_time += time.time() - start
@@ -72,10 +82,10 @@ def run_tfidf(gpt_processed_articles: List[Article]):
     return text_scores
 
 
-def calculate_gpt_weighted_score(metrics: GPTArticleEvaluationMetrics):  # ->float:
+def calculate_gpt_weighted_score(metrics: GPTArticleEvaluationMetrics) -> float:
     metric_dict = vars(metrics)
     assert set(metric_dict.keys()) == set(gpt_category_multipliers.keys())
-    highest_scoring_metric = max(metric_dict, key=metric_dict.get)
+    highest_scoring_metric = max(metric_dict, key=metric_dict.get)  # type: ignore
     multiplier = gpt_category_multipliers.get(highest_scoring_metric)
     if not multiplier:
         raise ValueError(
@@ -86,20 +96,19 @@ def calculate_gpt_weighted_score(metrics: GPTArticleEvaluationMetrics):  # ->flo
     return final_score
 
 
-def rank_articles(test_mode: bool):
-    path_to_read = "assets/" + ("test/" if test_mode else "") + "news.json"
-    news_items_raw = [
-        Article(**i)
-        for i in json.load(open(path_to_read, "r"))
-        if all(i.get(k) is not None for k in ["title", "summary", "text"])
-    ]
-    news_items = [i for i in news_items_raw if not i.is_skipped]
-    print(f"Parsed {len(news_items)} articles from JSON")
+def rank_articles(news_items: List[Article], test_mode: bool):
     if test_mode:
-        if not testing_gpt_threshold:
-            final_threshold = len(news_items)
+        dir_path = "assets/test/"
+        pth = os.path.join(os.path.curdir, dir_path)
+        if "chatgpt_ranking.json" in os.listdir(pth):
+            df = pd.read_json("assets/test/chatgpt_ranking.json")
+            print(f"{df.shape[0]} ranked articles already exist in `assets/test`")
+            return df
         else:
-            final_threshold = min(len(news_items), testing_gpt_threshold)
+            if not testing_gpt_threshold:
+                final_threshold = len(news_items)
+            else:
+                final_threshold = min(len(news_items), testing_gpt_threshold)
         news_items = news_items[:final_threshold]
         print(f"Limiting to {len(news_items)} articles")
 
@@ -138,4 +147,6 @@ def rank_articles(test_mode: bool):
         inplace=True,
         ignore_index=True,
     )
+    if test_mode:
+        df.to_json("assets/test/chatgpt_ranking.json", orient="records")
     return df
