@@ -16,6 +16,7 @@ from dotenv import load_dotenv
 
 from htmls import get_formatted_date, render_news
 from ranking import rank_articles
+from similarity_clustering import deduplicate_articles
 
 
 def get_from_worldnewsapi_com(test_mode: bool = False):
@@ -163,7 +164,7 @@ if __name__ == "__main__":
         print("----- Running script -----")
     get_from_worldnewsapi_com(test_mode=testing_flag)
     print("----------")
-    sorted_news = rank_articles(test_mode=testing_flag)
+    dedup_processed_news=deduplicate_articles(test_mode=testing_flag)
     print("----------")
     complete_html, skipped_articles = render_news(
         article_df=sorted_news, test_mode=testing_flag
