@@ -7,17 +7,27 @@ import sys
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from http import HTTPStatus
+from typing import Any, Dict
 
-import nltk
+import nltk  # type: ignore
 import pandas as pd
 import requests
 from dotenv import load_dotenv
 
 from htmls import get_formatted_date, render_news
 from ranking import rank_articles
+from similarity_clustering import deduplicate_articles
 
 
 def get_from_worldnewsapi_com(test_mode: bool = False):
+    if test_mode:
+        dir_path = "assets/test/"
+        pth = os.path.join(os.path.curdir, dir_path)
+        if "news.json" in os.listdir(pth):
+            item_count = len(json.load(open("assets/test/news.json", "r")))
+            print(f"{item_count} articles already extracted in `assets/test`")
+            return
+
     # Set vars
     api_key = os.environ.get("WORLDNEWSAPI_KEY")
     url = "https://api.worldnewsapi.com/search-news"
@@ -38,7 +48,7 @@ def get_from_worldnewsapi_com(test_mode: bool = False):
     # API ops
     print("Sending GET requests")
     headers = {"x-api-key": api_key}
-    params = {
+    params: Dict[str, Any] = {
         "source-country": "in",
         "language": "en",
         "earliest-publish-date": earliest,
@@ -58,7 +68,7 @@ def get_from_worldnewsapi_com(test_mode: bool = False):
         offset += news_items_per_call
         total_items = first_response.json().get("available")
         remaining_items = total_items - offset
-        remaining_quota = float(first_response.headers.get("X-API-Quota-Left"))
+        remaining_quota = float(first_response.headers.get("X-API-Quota-Left"))  # type: ignore
         print(
             f"Found {first_response.json().get('available')} articles\nRetrieved {offset} items in total. {remaining_items} items to go"
         )
@@ -82,7 +92,7 @@ def get_from_worldnewsapi_com(test_mode: bool = False):
             news_items.extend(next_response.json().get("news"))
             remaining_items -= received
             offset += news_items_per_call
-            remaining_quota = float(first_response.headers.get("X-API-Quota-Left"))
+            remaining_quota = float(first_response.headers.get("X-API-Quota-Left"))  # type: ignore
             print(
                 f"Retrieved {len(news_items)} items in total. "
                 + (f"{remaining_items} to go" if remaining_items >= 0 else "")
@@ -102,18 +112,15 @@ def get_from_worldnewsapi_com(test_mode: bool = False):
     )
 
 
-# def rank_news(test_mode: bool):
-#     sorted_articles = rank_articles(test_mode)
-#     sorted_articles.to_excel(f"assets/test/ranking/chatgpt_ranking.xlsx", index=False)
-#     return sorted_articles
-
-
 def send_email(content: str):
     date = get_formatted_date()
 
     sender_email = os.environ.get("SENDER_EMAIL")
     app_password = os.environ.get("GMAIL_APP_PASSWORD")
-    recipients = json.loads(os.environ.get("RECIPIENTS"))
+    recipients_raw = os.environ.get("RECIPIENTS")
+    if not sender_email or not app_password or not recipients_raw:
+        raise ValueError("All required mailing vars not found in .env")
+    recipients = json.loads(recipients_raw)
 
     # Set up SMTP object
     smtp_server = smtplib.SMTP_SSL("smtp.gmail.com", 465)
@@ -144,14 +151,20 @@ if __name__ == "__main__":
         pass
     else:
         ssl._create_default_https_context = _create_unverified_https_context
-    nltk.download("vader_lexicon", quiet=True)
+    nltk.download("stopwords", quiet=True)
+
     if testing_flag:
         print("----- RUNNING IN TEST MODE -----")
     else:
         print("----- Running script -----")
     get_from_worldnewsapi_com(test_mode=testing_flag)
     print("----------")
-    sorted_news = rank_articles(test_mode=testing_flag)
+    dedup_processed_news = deduplicate_articles(test_mode=testing_flag)
     print("----------")
-    complete_html, skipped_articles = render_news(article_df=sorted_news)
-    send_email(content=complete_html)
+    sorted_news = rank_articles(news_items=dedup_processed_news, test_mode=testing_flag)
+    print("----------")
+    complete_html, skipped_articles = render_news(
+        article_df=sorted_news,
+        test_mode=testing_flag,
+    )
+    # send_email(content=complete_html)
