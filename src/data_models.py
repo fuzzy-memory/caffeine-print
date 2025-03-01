@@ -38,7 +38,6 @@ class Article(BaseModel):
     bert_processed_text: Optional[str] = None
     dbscan_cluster_label: Optional[int] = None
 
-
     @model_validator(mode="after")
     def __validate_article(self: "Article") -> "Article":
         self.title = self.title.strip()
