@@ -35,6 +35,9 @@ class Article(BaseModel):
     gpt_feedback: Optional[GPTArticleEvaluationMetrics] = None
     relevance_score: Optional[float] = 0.0
     is_skipped: Optional[bool] = False
+    bert_processed_text: Optional[str] = None
+    dbscan_cluster_label: Optional[int] = None
+
 
     @model_validator(mode="after")
     def __validate_article(self: "Article") -> "Article":
