@@ -166,6 +166,8 @@ if __name__ == "__main__":
     print("----------")
     dedup_processed_news=deduplicate_articles(test_mode=testing_flag)
     print("----------")
+    sorted_news = rank_articles(news_items=dedup_processed_news, test_mode=testing_flag)
+    print("----------")
     complete_html, skipped_articles = render_news(
         article_df=sorted_news, test_mode=testing_flag
     )

@@ -96,7 +96,7 @@ def calculate_gpt_weighted_score(metrics: GPTArticleEvaluationMetrics) -> float:
     return final_score
 
 
-def rank_articles(test_mode: bool):
+def rank_articles(news_items: List[Article], test_mode: bool):
     if test_mode:
         dir_path = "assets/test/"
         pth = os.path.join(os.path.curdir, dir_path)
@@ -104,20 +104,11 @@ def rank_articles(test_mode: bool):
             df = pd.read_json("assets/test/chatgpt_ranking.json")
             print(f"{df.shape[0]} ranked articles already exist in `assets/test`")
             return df
-
-    path_to_read = "assets/" + ("test/" if test_mode else "") + "news.json"
-    news_items_raw = [
-        Article(**i)
-        for i in json.load(open(path_to_read, "r"))
-        if all(i.get(k) is not None for k in ["title", "summary", "text"])
-    ]
-    news_items = [i for i in news_items_raw if not i.is_skipped]
-    print(f"Parsed {len(news_items)} articles from JSON")
-    if test_mode:
-        if not testing_gpt_threshold:
-            final_threshold = len(news_items)
         else:
-            final_threshold = min(len(news_items), testing_gpt_threshold)
+            if not testing_gpt_threshold:
+                final_threshold = len(news_items)
+            else:
+                final_threshold = min(len(news_items), testing_gpt_threshold)
         news_items = news_items[:final_threshold]
         print(f"Limiting to {len(news_items)} articles")
 
