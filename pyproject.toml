@@ -1,0 +1,29 @@
+[project]
+name = "caffeine-print"
+version = "0.2.0"
+description = "A current affairs and politics news mailer"
+authors = [
+    {name = "Tushar Machavolu",email = "tush.machavolu@gmail.com"}
+]
+license = {text = "Topics"}
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "nltk (>=3.9.1,<4.0.0)",
+    "openai (>=1.65.2,<2.0.0)",
+    "pandas (>=2.2.3,<3.0.0)",
+    "python-dotenv (>=1.0.1,<2.0.0)",
+    "scikit-learn (>=1.6.1,<2.0.0)",
+    "sentence-transformers (==3.4.1)"
+]
+
+[tool.poetry]
+package-mode = false
+
+[tool.poetry.group.dev.dependencies]
+black = "^25.1.0"
+isort = "^6.0.1"
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
