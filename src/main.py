@@ -22,7 +22,7 @@ def get_from_worldnewsapi_com(test_mode: bool = False):
         dir_path = "assets/test/"
         pth = os.path.join(os.path.curdir, dir_path)
         if "news.json" in os.listdir(pth):
-            item_count=len(json.load(open("assets/test/news.json", "r")))
+            item_count = len(json.load(open("assets/test/news.json", "r")))
             print(f"{item_count} articles already extracted in `assets/test`")
             return
 
