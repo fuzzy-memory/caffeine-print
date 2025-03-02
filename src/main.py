@@ -167,4 +167,4 @@ if __name__ == "__main__":
         article_df=sorted_news,
         test_mode=testing_flag,
     )
-    # send_email(content=complete_html)
+    send_email(content=complete_html)
