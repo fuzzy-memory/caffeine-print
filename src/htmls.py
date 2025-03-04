@@ -4,8 +4,10 @@ import re
 from typing import List, Tuple
 
 import pandas as pd
+from titlecase import titlecase
 
 from data_models import Article
+from properties import total_news_items, permitted_tags
 
 
 def ordinal(n: int):
@@ -90,14 +92,10 @@ def make_base_html():
                 color: #bbbbbb;
                 margin-top: 5px;
             }}
-            .article-image {{
-                width: 120px;
-                height: 80px;
-                object-fit: cover;
-                max-width: 120px;
-                max-height: 80px;
-                border-radius: 8px;
-                margin-left: 15px;
+            hr.rounded {{
+              border-top: 5px solid #bbb;
+              border-radius: 5px;
+              margin-top: 5px;
             }}
         </style>
     </head>
@@ -122,29 +120,37 @@ def render_news(
     article_list = [
         Article(**json.loads(i.to_json())) for _, i in article_df.iterrows()
     ]
-    rank = 1
-    max_rank = 30 if datetime.date.today().weekday() <= 4 else 60
-    article_divs = [f"<p>Today's top {max_rank} stories</p>"]
+    article_divs = [f"<p>Today's top {total_news_items} stories</p>"]
     rendered_articles = []
-    for article in article_list[:max_rank]:
-        summary_render = (
-            article.summary
-            if "".join(re.findall(r"\w", article.title)).lower()
-            != "".join(re.findall(r"\w", article.summary)).lower()
-            else ""
-        )
-        div = f"""
-            <a href={article.url} class="article-card" target="_blank">
-                <div class="article-number">{rank}</div>
-                <div class="article-content">
-                    <div class="article-title">{article.title}</div>
-                    <div class="article-summary">{summary_render}</div>
-                </div>
-            </a>
-            """
-        article_divs.append(div)
-        rendered_articles.append(article.id)
-        rank += 1
+    for tag in permitted_tags.keys():
+        rank=1
+        max_items=permitted_tags.get(tag)
+        if max_items==0:
+            continue
+        if tag!="national":
+            article_divs.extend(["<hr class=\"rounded\">"])
+        article_divs.extend([f"<h2>{titlecase(tag.replace('_', ' '))}{' news' if tag.endswith('national') else ''}</h2>"])
+        render_items=[i for i in article_list if i.tag==tag][:max_items]
+        for article in render_items:
+            summary_render = (
+                    article.summary
+                    if "".join(re.findall(r"\w", article.title)).lower()
+                       != "".join(re.findall(r"\w", article.summary)).lower()
+                    else ""
+                )
+            div = (
+                f"""<a href={article.url} class="article-card" target="_blank">"""
+                f"""    <div class="article-number">{rank}</div>"""
+                f"""    <div class="article-content">"""
+                f"""        <div class="article-title">{article.title}</div>"""
+                f"""        <div class="article-summary">{summary_render}</div>"""
+                f"""    </div>"""
+                f"""</a>"""
+            )
+            article_divs.append(div)
+            rendered_articles.append(article.id)
+            rank += 1
+
     header_html, footer_html = make_base_html()
     article_html = header_html + "\n".join(article_divs) + footer_html
     if test_mode:
