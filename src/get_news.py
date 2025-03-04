@@ -24,7 +24,6 @@ def generate_general_news_request_params(key: str)->Dict[str, Union[Dict[str, st
     )
 
     # API ops
-    print("Sending GET requests")
     headers = {"x-api-key": key}
     params: Dict[str, Any] = {
         "source-country": "in",
@@ -102,17 +101,21 @@ def get_news_from_api(caller: Literal["general", "laurels"], test_mode: bool = F
     offset=generated_request_body.get("offset")
     news_items_per_call=generated_request_body.get("news_items_per_call")
 
+    print(f"Sending GET requests for {caller} news items")
     # First call
     first_response = requests.get(url, headers=headers, params=params)
     if first_response.status_code == HTTPStatus.OK:
         news_items = first_response.json().get("news")
-        offset += news_items_per_call
         total_items = first_response.json().get("available")
         if total_items==0:
             print("No news items returned from API")
             exit(1)
+        offset += news_items_per_call
         remaining_items = total_items - offset
         remaining_quota = float(first_response.headers.get("X-API-Quota-Left"))  # type: ignore
+        if total_items<news_items_per_call:
+            offset=total_items
+            remaining_items=0
         print(
             f"Found {first_response.json().get('available')} articles\nRetrieved {offset} items in total. {remaining_items} items to go"
         )
