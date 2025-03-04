@@ -26,3 +26,4 @@ literature_and_laurels=0 if is_weekday else 10
 assert national_news_items+international_news_items==total_news_items
 
 permitted_tags= {"national":national_news_items, "international":international_news_items, "awards_and_laurels": literature_and_laurels}
+permitted_callers=["general", "laurels"]
