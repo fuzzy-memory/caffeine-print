@@ -57,19 +57,14 @@ def generate_laurels_request_params(key)->Dict[str, Union[Dict[str, str], int]]:
     )
     offset = 0
     news_items_per_call = 100
-    # news_sources = ",".join(
-    #     [i.strip() for i in json.load(open("assets/news_sources.json", "r")).keys()]
-    # )
 
     # API ops
-    print("Sending GET requests")
     headers = {"x-api-key": key}
     params: Dict[str, Any] = {
-        # "source-country": "in",
         "language": "en",
         "earliest-publish-date": earliest,
         "latest-publish-date": latest,
-        "categories": "major fine arts awards",
+        "text": "winners of english literary awards OR pulitzer OR booker -oscars -grammy -emmy -movies -music",
         "number": news_items_per_call,
         "offset": offset,
         "sort": "publish-time",
