@@ -7,7 +7,7 @@ import pandas as pd
 from titlecase import titlecase
 
 from data_models import Article
-from properties import total_news_items, permitted_tags
+from properties import permitted_tags, total_news_items
 
 
 def ordinal(n: int):
@@ -123,21 +123,25 @@ def render_news(
     article_divs = [f"<p>Today's top {total_news_items} stories</p>"]
     rendered_articles = []
     for tag in permitted_tags.keys():
-        rank=1
-        max_items=permitted_tags.get(tag)
-        if max_items==0:
+        rank = 1
+        max_items = permitted_tags.get(tag)
+        if max_items == 0:
             continue
-        if tag!="national":
-            article_divs.extend(["<hr class=\"rounded\">"])
-        article_divs.extend([f"<h2>{titlecase(tag.replace('_', ' '))}{' news' if tag.endswith('national') else ''}</h2>"])
-        render_items=[i for i in article_list if i.tag==tag][:max_items]
+        if tag != "national":
+            article_divs.extend(['<hr class="rounded">'])
+        article_divs.extend(
+            [
+                f"<h2>{titlecase(tag.replace('_', ' '))}{' news' if tag.endswith('national') else ''}</h2>"
+            ]
+        )
+        render_items = [i for i in article_list if i.tag == tag][:max_items]
         for article in render_items:
             summary_render = (
-                    article.summary
-                    if "".join(re.findall(r"\w", article.title)).lower()
-                       != "".join(re.findall(r"\w", article.summary)).lower()
-                    else ""
-                )
+                article.summary
+                if "".join(re.findall(r"\w", article.title)).lower()
+                != "".join(re.findall(r"\w", article.summary)).lower()
+                else ""
+            )
             div = (
                 f"""<a href={article.url} class="article-card" target="_blank">"""
                 f"""    <div class="article-number">{rank}</div>"""

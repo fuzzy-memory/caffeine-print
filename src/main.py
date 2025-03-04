@@ -6,13 +6,11 @@ import ssl
 import sys
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
-from get_news import get_news_from_api
 
 import nltk  # type: ignore
-import pandas as pd
-import requests
 from dotenv import load_dotenv
 
+from get_news import get_news_from_api
 from htmls import get_formatted_date, render_news
 from ranking import rank_articles
 from similarity_clustering import deduplicate_articles
