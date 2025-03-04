@@ -1,8 +1,8 @@
 from typing import Optional
 
-from pydantic import BaseModel, ConfigDict, Field, model_validator
+from pydantic import BaseModel, ConfigDict, model_validator, field_validator
 
-from properties import sentiment_threshold
+from properties import sentiment_threshold, permitted_tags
 
 
 class GPTArticleEvaluationMetrics(BaseModel):
@@ -37,6 +37,7 @@ class Article(BaseModel):
     is_skipped: Optional[bool] = False
     bert_processed_text: Optional[str] = None
     dbscan_cluster_label: Optional[int] = None
+    tag: Optional[str] = None
 
     @model_validator(mode="after")
     def __validate_article(self: "Article") -> "Article":
@@ -50,6 +51,12 @@ class Article(BaseModel):
             or abs(self.sentiment) >= sentiment_threshold
         )
         return self
+
+    @field_validator("tag")
+    def __validate_tag(cls, tag_val):
+        if tag_val not in permitted_tags.keys():
+            raise ValueError(f"Tag {tag_val} not permitted. Permitted tags are {', '.join(permitted_tags.keys())}")
+        return tag_val
 
     def __str__(self):
         st = f"Article #{self.id}: {self.title}"
