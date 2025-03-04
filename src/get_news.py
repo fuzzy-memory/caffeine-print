@@ -128,7 +128,7 @@ def make_api_calls(*, headers: Dict[str, str], params: Dict[str, Any], offset:in
             )
     return news_items, remaining_quota
 
-def get_news_from_api(caller: Literal["general", "laurels"], test_mode: bool = False):
+def get_news_from_api(test_mode: bool = False):
     if test_mode:
         dir_path = "assets/test/"
         pth = os.path.join(os.path.curdir, dir_path)
@@ -139,67 +139,19 @@ def get_news_from_api(caller: Literal["general", "laurels"], test_mode: bool = F
 
     # Set vars
     api_key = os.environ.get("WORLDNEWSAPI_KEY")
-    url = "https://api.worldnewsapi.com/search-news"
-    if caller=="general":
-        generated_request_body=generate_general_news_request_params(key=api_key)
-    elif caller=="laurels":
-        generated_request_body = generate_general_news_request_params(key=api_key)
-    else:
-        raise ValueError(f"Invalid caller `{caller}`")
+    callers={"general": generate_general_news_request_params, "laurels":generate_laurels_request_params}
+    news_items=[]
+    remaining_quota=0.0
+    for caller in callers.keys():
+        generated_request_body=callers.get(caller)(key=api_key)
+        headers=generated_request_body.get("headers")
+        params=generated_request_body.get("params")
+        offset=generated_request_body.get("offset")
+        news_items_per_call=generated_request_body.get("news_items_per_call")
+        print(f"Sending GET requests for {caller} news items")
+        api_output, remaining_quota=make_api_calls(headers=headers, params=params, offset=offset,news_items_per_call=news_items_per_call, test_mode=test_mode)
+        news_items.extend(api_output)
 
-    headers=generated_request_body.get("headers")
-    params=generated_request_body.get("params")
-    offset=generated_request_body.get("offset")
-    news_items_per_call=generated_request_body.get("news_items_per_call")
-
-    print(f"Sending GET requests for {caller} news items")
-    # First call
-    first_response = requests.get(url, headers=headers, params=params)
-    if first_response.status_code == HTTPStatus.OK:
-        news_items = first_response.json().get("news")
-        total_items = first_response.json().get("available")
-        if total_items==0:
-            print("No news items returned from API")
-            exit(1)
-        offset += news_items_per_call
-        remaining_items = total_items - offset
-        remaining_quota = float(first_response.headers.get("X-API-Quota-Left"))  # type: ignore
-        if total_items<news_items_per_call:
-            offset=total_items
-            remaining_items=0
-        print(
-            f"Found {first_response.json().get('available')} articles\nRetrieved {offset} items in total. {remaining_items} items to go"
-        )
-    else:
-        raise requests.HTTPError(
-            f"{first_response.status_code}: {first_response.json().get('message')}"
-        )
-
-    # Pagination calls
-    while True:
-        if test_mode:
-            break
-        if remaining_items <= 0 or remaining_quota <= 1:
-            break
-        params.update({"offset": offset, "number": news_items_per_call})
-        next_response = requests.get(url, headers=headers, params=params)
-        if next_response.status_code == HTTPStatus.OK:
-            received = len(next_response.json().get("news"))
-            if total_items - received < news_items_per_call:
-                news_items_per_call = total_items - received
-            news_items.extend(next_response.json().get("news"))
-            remaining_items -= received
-            offset += news_items_per_call
-            remaining_quota = float(first_response.headers.get("X-API-Quota-Left"))  # type: ignore
-            print(
-                f"Retrieved {len(news_items)} items in total. "
-                + (f"{remaining_items} to go" if remaining_items >= 0 else "")
-            )
-        else:
-            json.dump(news_items, open("assets/incomplete_news.json", "w"))
-            raise requests.HTTPError(
-                f"{next_response.status_code}: Retrieved until offset {offset}. Quota: {next_response.headers.get('X-API-Quota-Left')}"
-            )
     print(f"Operation complete. Remaining quota: {remaining_quota}")
     df = pd.DataFrame(news_items).drop_duplicates(subset=["id"])
     path_to_write = "assets/" + ("test/" if test_mode else "") + "news.json"
