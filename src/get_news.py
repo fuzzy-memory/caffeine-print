@@ -7,6 +7,8 @@ from http import HTTPStatus
 import pandas as pd
 from dateutil import relativedelta
 
+from properties import permitted_callers
+
 
 def generate_general_news_request_params(key: str)->Dict[str, Union[Dict[str, str], int]]:
     # Date limit vars
@@ -76,7 +78,8 @@ def generate_laurels_request_params(key)->Dict[str, Union[Dict[str, str], int]]:
     }
     return {"headers": headers, "params": params, "offset": offset, "news_items_per_call": news_items_per_call}
 
-def make_api_calls(*, headers: Dict[str, str], params: Dict[str, Any], offset:int, news_items_per_call:int, test_mode: bool):
+def make_api_calls(*, headers: Dict[str, str], params: Dict[str, Any], offset:int, news_items_per_call:int, test_mode: bool, caller: str):
+    assert caller in permitted_callers
     url = "https://api.worldnewsapi.com/search-news"
 
     # First call
@@ -126,6 +129,8 @@ def make_api_calls(*, headers: Dict[str, str], params: Dict[str, Any], offset:in
             raise requests.HTTPError(
                 f"{next_response.status_code}: Retrieved until offset {offset}. Quota: {next_response.headers.get('X-API-Quota-Left')}"
             )
+    for obj in news_items:
+        obj.update({"api_query_category": caller})
     return news_items, remaining_quota
 
 def get_news_from_api(test_mode: bool = False):
@@ -139,7 +144,7 @@ def get_news_from_api(test_mode: bool = False):
 
     # Set vars
     api_key = os.environ.get("WORLDNEWSAPI_KEY")
-    callers={"general": generate_general_news_request_params, "laurels":generate_laurels_request_params}
+    callers=dict(zip(permitted_callers, [generate_general_news_request_params, generate_laurels_request_params]))
     news_items=[]
     remaining_quota=0.0
     for caller in callers.keys():
@@ -149,7 +154,7 @@ def get_news_from_api(test_mode: bool = False):
         offset=generated_request_body.get("offset")
         news_items_per_call=generated_request_body.get("news_items_per_call")
         print(f"Sending GET requests for {caller} news items")
-        api_output, remaining_quota=make_api_calls(headers=headers, params=params, offset=offset,news_items_per_call=news_items_per_call, test_mode=test_mode)
+        api_output, remaining_quota=make_api_calls(headers=headers, params=params, offset=offset,news_items_per_call=news_items_per_call, test_mode=test_mode, caller=caller)
         news_items.extend(api_output)
 
     print(f"Operation complete. Remaining quota: {remaining_quota}")

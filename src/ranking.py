@@ -37,6 +37,11 @@ def rank_via_chatgpt(news: List[Article]):
     print("Sending API calls to ChatGPT")
     for article in tqdm(news):
         start = time.time()
+        if article.api_query_category=="laurels":
+            article.gpt_feedback=GPTArticleEvaluationMetrics(indian_polity=0, indian_economy=0, indian_local_news=0, global_current_affairs=0, geopolitics=0)
+            scored_articles.append(article)
+            total_time += time.time() - start
+            continue
         prompt = generate_prompt(article_text=article.text)
         response = call_model(prompt, client)
         if response is None:
@@ -129,7 +134,7 @@ def rank_articles(news_items: List[Article], test_mode: bool):
     # Compute final relevance
     relevance_scores = []
     for i, article in enumerate(gpt_scored_articles):
-        source_score = source_scores.get(article.source)
+        source_score = source_scores.get(article.source, 0)
         chat_gpt_weighted_score, tag = calculate_gpt_weighted_score(article.gpt_feedback)
         score = (
             overall_weights["source"] * source_score
@@ -137,6 +142,8 @@ def rank_articles(news_items: List[Article], test_mode: bool):
             + overall_weights["score"] * chat_gpt_weighted_score
             + overall_weights["text"] * text_scores[i] * 100
         )
+        if article.api_query_category=="laurels":
+            tag="awards_and_laurels"
         relevance_scores.append([score, tag])
     print(f"Calculated {len(relevance_scores)} relevance scores")
 

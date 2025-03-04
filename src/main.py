@@ -63,7 +63,7 @@ if __name__ == "__main__":
         print("----- RUNNING IN TEST MODE -----")
     else:
         print("----- Running script -----")
-    get_news_from_api(caller="general", test_mode=testing_flag)
+    get_news_from_api(test_mode=testing_flag)
     print("----------")
     dedup_processed_news = deduplicate_articles(test_mode=testing_flag)
     print("----------")
