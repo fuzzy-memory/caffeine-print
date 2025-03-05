@@ -35,13 +35,13 @@ def send_email(content: str):
     message = MIMEMultipart("alternative")
     message["Subject"] = f"Hashbrown: {date}"
     message["From"] = sender_email
-    message["To"] = ", ".join(recipients)
     message.attach(MIMEText(content, "html"))
 
     # Send email
-    smtp_server.sendmail(
-        from_addr=sender_email, to_addrs=recipients, msg=message.as_string()
-    )
+    for recipient in recipients:
+        smtp_server.sendmail(
+            from_addr=sender_email, to_addrs=recipient, msg=message.as_string()
+        )
     smtp_server.close()
     print("Emails sent :)")
 
