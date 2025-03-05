@@ -8,7 +8,7 @@ import pandas as pd
 import requests
 from dateutil import relativedelta
 
-from properties import permitted_callers
+from properties import permitted_callers, literature_and_laurels
 
 
 def generate_general_news_request_params(
@@ -103,12 +103,11 @@ def make_api_calls(
     if first_response.status_code == HTTPStatus.OK:
         news_items = first_response.json().get("news")
         total_items = first_response.json().get("available")
+        remaining_quota = float(first_response.headers.get("X-API-Quota-Left"))  # type: ignore
         if total_items == 0:
-            print("No news items returned from API")
-            exit(1)
+            return [], remaining_quota
         offset += news_items_per_call
         remaining_items = total_items - offset
-        remaining_quota = float(first_response.headers.get("X-API-Quota-Left"))  # type: ignore
         if total_items < news_items_per_call:
             offset = total_items
             remaining_items = 0
@@ -169,6 +168,9 @@ def get_news_from_api(test_mode: bool = False):
     )
     news_items = []
     remaining_quota = 0.0
+    if literature_and_laurels == 0:
+        callers.pop("laurels")
+
     for caller in callers.keys():
         generated_request_body = callers.get(caller)(key=api_key)
         headers = generated_request_body.get("headers")
@@ -187,6 +189,9 @@ def get_news_from_api(test_mode: bool = False):
         news_items.extend(api_output)
 
     print(f"Operation complete. Remaining quota: {remaining_quota}")
+    if len(news_items) == 0:
+        print("No news items returned from API")
+        exit(1)
     df = pd.DataFrame(news_items).drop_duplicates(subset=["id"])
     path_to_write = "assets/" + ("test/" if test_mode else "") + "news.json"
     df.to_json(
