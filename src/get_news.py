@@ -8,7 +8,7 @@ import pandas as pd
 import requests
 from dateutil import relativedelta
 
-from properties import permitted_callers, literature_and_laurels
+from properties import literature_and_laurels, permitted_callers
 
 
 def generate_general_news_request_params(
