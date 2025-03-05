@@ -1841,6 +1841,20 @@ files = [
 ]
 
 [[package]]
+name = "titlecase"
+version = "2.4.1"
+description = "Python Port of John Gruber's titlecase.pl"
+optional = false
+python-versions = ">=3.7"
+groups = ["main"]
+files = [
+    {file = "titlecase-2.4.1.tar.gz", hash = "sha256:7d83a277ccbbda11a2944e78a63e5ccaf3d32f828c594312e4862f9a07f635f5"},
+]
+
+[package.extras]
+regex = ["regex (>=2020.4.4)"]
+
+[[package]]
 name = "tokenizers"
 version = "0.21.0"
 description = ""
@@ -2132,4 +2146,4 @@ zstd = ["zstandard (>=0.18.0)"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.10"
-content-hash = "d302d3847af034100f45d3fb2940d77c6cc462a9d33f4828583a91260a77dab6"
+content-hash = "a7f50536ea20599babda7e563516ee944ee55dbcd2d091aeaf7386847a02cd5c"
