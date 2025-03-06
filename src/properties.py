@@ -7,7 +7,8 @@ overall_weights = {
     "source": 0.05,
     "sentiment": 0.05,
     "text": 0.15,
-    "score": 0.75,
+    "score": 0.65,
+    "confidence": 0.1,
 }
 gpt_category_multipliers = {
     "indian_polity": 0.5,
