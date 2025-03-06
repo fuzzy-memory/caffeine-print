@@ -151,6 +151,7 @@ def rank_articles(news_items: List[Article], test_mode: bool):
             + overall_weights["sentiment"] * sentiment_scores[i] * 10
             + overall_weights["score"] * chat_gpt_weighted_score
             + overall_weights["text"] * text_scores[i] * 100
+            + overall_weights["confidence"] * article.cluster_count
         )
         if article.api_query_category == "laurels":
             tag = "awards_and_laurels"

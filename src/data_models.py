@@ -39,6 +39,7 @@ class Article(BaseModel):
     dbscan_cluster_label: Optional[int] = None
     tag: Optional[str] = None
     api_query_category: Optional[str] = None
+    cluster_count: Optional[int] = None
 
     @model_validator(mode="after")
     def __validate_article(self: "Article") -> "Article":
@@ -51,6 +52,7 @@ class Article(BaseModel):
             any(len(i) == 0 for i in [self.text, self.summary, self.title])
             or abs(self.sentiment) >= sentiment_threshold
         )
+        self.cluster_count = 0 if not self.cluster_count else self.cluster_count
         return self
 
     @field_validator("tag")
@@ -62,7 +64,7 @@ class Article(BaseModel):
         return tag_val
 
     @field_validator("api_query_category")
-    def __validate_tag(cls, val):
+    def __validate_api_query_category(cls, val):
         if val not in permitted_callers:
             raise ValueError(
                 f"Caller {val} not permitted. Permitted callers are {', '.join(permitted_callers)}"

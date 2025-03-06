@@ -1,6 +1,7 @@
 import datetime
 import json
 import re
+from statistics import mean
 from typing import List, Tuple
 
 import pandas as pd
@@ -51,7 +52,7 @@ def make_base_html():
                 display: flex;
                 align-items: center;
                 background-color: #1e1e1e;
-                padding: 15px;
+                padding: 35px;
                 margin-bottom: 15px;
                 border-radius: 8px;
                 box-shadow: 0 2px 5px rgba(255, 255, 255, 0.1);
@@ -77,8 +78,7 @@ def make_base_html():
                 color: #bbbbbb;
                 background-color: #292929;
                 height: 100%;
-                border-top-left-radius: 8px;
-                border-bottom-left-radius: 8px;
+                border-radius: 8px;
             }}
             .article-content {{
                 flex: 1;
@@ -91,11 +91,22 @@ def make_base_html():
             .article-summary {{
                 color: #bbbbbb;
                 margin-top: 5px;
+                padding: 5px;
             }}
             hr.rounded {{
-              border-top: 5px solid #bbb;
-              border-radius: 5px;
-              margin-top: 5px;
+                border-top: 5px solid #bbb;
+                border-radius: 5px;
+                margin-top: 5px;
+            }}
+            .confidence-score {{
+                position: absolute;
+                bottom: 10px;
+                right: 15px;
+                font-size: 14px;
+                color: #bbbbbb;
+                background-color: #950606;
+                padding: 5px 10px 5px 10px;
+                border-radius: 5px;
             }}
         </style>
     </head>
@@ -120,6 +131,7 @@ def render_news(
     article_list = [
         Article(**json.loads(i.to_json())) for _, i in article_df.iterrows()
     ]
+    mean_report_count = mean(i.cluster_count for i in article_list)
     article_divs = [f"<p>Today's top {total_news_items} stories</p>"]
     rendered_articles = []
     for tag in permitted_tags.keys():
@@ -149,7 +161,12 @@ def render_news(
                 f"""        <div class="article-title">{article.title}</div>"""
                 f"""        <div class="article-summary">{summary_render}</div>"""
                 f"""    </div>"""
-                f"""</a>"""
+                + (
+                    f"""    <div class="confidence-score">BREAKING (Reported {article.cluster_count} times)</div>"""
+                    if article.cluster_count >= mean_report_count
+                    else ""
+                )
+                + f"""</a>"""
             )
             article_divs.append(div)
             rendered_articles.append(article.id)

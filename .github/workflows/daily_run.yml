@@ -3,6 +3,10 @@ name: Daily run
 on:
    schedule:
      - cron: "0 2 * * *"
+   push:
+      branches:
+      - test/*
+
 
 jobs:
   execute_mail:
@@ -10,6 +14,14 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
+
+      - name: Set environment for branch
+        run: |
+          if [[ $GITHUB_REF_NAME == 'master' ]]; then
+              echo "RECIPIENTS=${{ secrets.RECIPIENTS }}" >> "$GITHUB_ENV"
+          else
+              echo "RECIPIENTS=${{ secrets.RECIPIENTS_TEST }}" >> "$GITHUB_ENV"
+          fi
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -29,4 +41,3 @@ jobs:
           GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
           WORLDNEWSAPI_KEY: ${{ secrets.WORLDNEWSAPI_KEY }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-          RECIPIENTS: ${{ secrets.RECIPIENTS }}

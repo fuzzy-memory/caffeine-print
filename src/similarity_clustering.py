@@ -78,6 +78,15 @@ def deduplicate_articles(test_mode: bool = False):
     for i, article in enumerate(news_items):
         article.dbscan_cluster_label = clustering.labels_[i]
 
+    cluster_counts = {
+        int(cluster_label): len(
+            [i for i in news_items if i.dbscan_cluster_label == cluster_label]
+        )
+        for cluster_label in set(i.dbscan_cluster_label for i in news_items)
+    }
+    for article in news_items:
+        article.cluster_count = cluster_counts.get(article.dbscan_cluster_label)
+
     if test_mode:
         pd.DataFrame(
             [
