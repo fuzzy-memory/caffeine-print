@@ -35,17 +35,21 @@ def make_base_html():
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100..900;1,100..900&display=swap"
+              rel="stylesheet">
         <title>Hash Brown: {date}</title>
         <style>
             body {{
                 background-color: #121212;
                 color: white;
-                font-family: Arial, sans-serif;
+                font-family: Roboto, sans-serif;
                 margin: 0;
-                padding: 20px;
+                padding: 10px;
             }}
             .container {{
-                max-width: 800px;
+                padding: 40px;
                 margin: auto;
             }}
             .article-card {{
@@ -69,6 +73,7 @@ def make_base_html():
                 text-decoration: none;
             }}
             .article-number {{
+                padding: 1px;
                 display: flex;
                 justify-content: center;
                 align-items: center;
@@ -91,6 +96,7 @@ def make_base_html():
             .article-summary {{
                 color: #bbbbbb;
                 margin-top: 5px;
+                font-size: 18px;
                 padding: 5px;
             }}
             hr.rounded {{
@@ -116,7 +122,7 @@ def make_base_html():
     """
 
     footer_html = """
-        <center>Made with ❤️ in Mumbai</center>
+        <div style="text-align: center;">Made with ❤️ in Mumbai</div>
         </div>
     </body>
     </html>
