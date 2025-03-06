@@ -51,7 +51,7 @@ def make_base_html():
                 display: flex;
                 align-items: center;
                 background-color: #1e1e1e;
-                padding: 15px;
+                padding: 35px;
                 margin-bottom: 15px;
                 border-radius: 8px;
                 box-shadow: 0 2px 5px rgba(255, 255, 255, 0.1);
@@ -77,8 +77,7 @@ def make_base_html():
                 color: #bbbbbb;
                 background-color: #292929;
                 height: 100%;
-                border-top-left-radius: 8px;
-                border-bottom-left-radius: 8px;
+                border-radius: 8px;
             }}
             .article-content {{
                 flex: 1;
@@ -91,11 +90,22 @@ def make_base_html():
             .article-summary {{
                 color: #bbbbbb;
                 margin-top: 5px;
+                padding: 5px;
             }}
             hr.rounded {{
-              border-top: 5px solid #bbb;
-              border-radius: 5px;
-              margin-top: 5px;
+                border-top: 5px solid #bbb;
+                border-radius: 5px;
+                margin-top: 5px;
+            }}
+            .confidence-score {{
+                position: absolute;
+                bottom: 10px;
+                right: 15px;
+                font-size: 14px;
+                color: #bbbbbb;
+                background-color: #950606;
+                padding: 5px 10px 5px 10px;
+                border-radius: 5px;
             }}
         </style>
     </head>
