@@ -1,6 +1,7 @@
 import datetime
 import json
 import re
+from statistics import mean
 from typing import List, Tuple
 
 import pandas as pd
@@ -130,6 +131,7 @@ def render_news(
     article_list = [
         Article(**json.loads(i.to_json())) for _, i in article_df.iterrows()
     ]
+    mean_report_count = mean(i.cluster_count for i in article_list)
     article_divs = [f"<p>Today's top {total_news_items} stories</p>"]
     rendered_articles = []
     for tag in permitted_tags.keys():
@@ -159,7 +161,12 @@ def render_news(
                 f"""        <div class="article-title">{article.title}</div>"""
                 f"""        <div class="article-summary">{summary_render}</div>"""
                 f"""    </div>"""
-                f"""</a>"""
+                + (
+                    f"""    <div class="confidence-score">BREAKING (Reported {article.cluster_count} times)</div>"""
+                    if article.cluster_count >= mean_report_count
+                    else ""
+                )
+                + f"""</a>"""
             )
             article_divs.append(div)
             rendered_articles.append(article.id)
