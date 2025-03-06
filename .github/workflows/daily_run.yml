@@ -33,4 +33,4 @@ jobs:
           GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
           WORLDNEWSAPI_KEY: ${{ secrets.WORLDNEWSAPI_KEY }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-          RECIPIENTS: ${{ GITHUB_REF_NAME == 'master' && secrets.RECIPIENTS || secrets.RECIPIENTS_TEST }}
+          RECIPIENTS: ${{ github.event_name == 'schedule' && secrets.RECIPIENTS || secrets.RECIPIENTS_TEST }}
