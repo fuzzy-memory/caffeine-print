@@ -39,6 +39,7 @@ class Article(BaseModel):
     dbscan_cluster_label: Optional[int] = None
     tag: Optional[str] = None
     api_query_category: Optional[str] = None
+    cluster_count: Optional[int] = None
 
     @model_validator(mode="after")
     def __validate_article(self: "Article") -> "Article":
@@ -51,6 +52,7 @@ class Article(BaseModel):
             any(len(i) == 0 for i in [self.text, self.summary, self.title])
             or abs(self.sentiment) >= sentiment_threshold
         )
+        self.cluster_count = 0 if not self.cluster_count else self.cluster_count
         return self
 
     @field_validator("tag")
