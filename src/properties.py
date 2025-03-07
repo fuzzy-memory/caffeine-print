@@ -24,7 +24,10 @@ total_news_items = 30 if is_weekday else 70
 international_news_items = 10 if is_weekday else 20
 national_news_items = 20 if is_weekday else 40
 literature_and_laurels = 0 if is_weekday else 10
-assert national_news_items + international_news_items == total_news_items
+assert (
+    national_news_items + international_news_items + literature_and_laurels
+    == total_news_items
+)
 
 permitted_tags = {
     "national": national_news_items,

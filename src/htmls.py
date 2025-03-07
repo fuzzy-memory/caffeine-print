@@ -8,7 +8,7 @@ import pandas as pd
 from titlecase import titlecase
 
 from data_models import Article
-from properties import permitted_tags, total_news_items
+from properties import permitted_tags
 
 
 def ordinal(n: int):
@@ -35,17 +35,21 @@ def make_base_html():
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100..900;1,100..900&display=swap"
+              rel="stylesheet">
         <title>Hash Brown: {date}</title>
         <style>
             body {{
                 background-color: #121212;
                 color: white;
-                font-family: Arial, sans-serif;
+                font-family: Roboto, sans-serif;
                 margin: 0;
-                padding: 20px;
+                padding: 10px;
             }}
             .container {{
-                max-width: 800px;
+                width: 80vw;
                 margin: auto;
             }}
             .article-card {{
@@ -69,6 +73,7 @@ def make_base_html():
                 text-decoration: none;
             }}
             .article-number {{
+                padding: 1px;
                 display: flex;
                 justify-content: center;
                 align-items: center;
@@ -91,6 +96,7 @@ def make_base_html():
             .article-summary {{
                 color: #bbbbbb;
                 margin-top: 5px;
+                font-size: 18px;
                 padding: 5px;
             }}
             hr.rounded {{
@@ -98,15 +104,12 @@ def make_base_html():
                 border-radius: 5px;
                 margin-top: 5px;
             }}
-            .confidence-score {{
-                position: absolute;
-                bottom: 10px;
-                right: 15px;
-                font-size: 14px;
-                color: #bbbbbb;
-                background-color: #950606;
-                padding: 5px 10px 5px 10px;
-                border-radius: 5px;
+            .article-breaking {{
+                padding: 5px;
+                font-size: 18px;
+                font-weight: bold;
+                color: #950606;
+                font-style: italic;
             }}
         </style>
     </head>
@@ -116,7 +119,7 @@ def make_base_html():
     """
 
     footer_html = """
-        <center>Made with ❤️ in Mumbai</center>
+        <div style="text-align: center;">Made with ❤️ in Mumbai</div>
         </div>
     </body>
     </html>
@@ -131,13 +134,15 @@ def render_news(
     article_list = [
         Article(**json.loads(i.to_json())) for _, i in article_df.iterrows()
     ]
-    mean_report_count = mean(i.cluster_count for i in article_list)
-    article_divs = [f"<p>Today's top {total_news_items} stories</p>"]
+    mean_report_count = max(mean(i.cluster_count for i in article_list), 2)
+    article_divs = [f"<p>Today's top stories</p>"]
     rendered_articles = []
     for tag in permitted_tags.keys():
         rank = 1
         max_items = permitted_tags.get(tag)
         if max_items == 0:
+            continue
+        if len([i for i in article_list if i.tag == tag]) == 0:
             continue
         if tag != "national":
             article_divs.extend(['<hr class="rounded">'])
@@ -159,14 +164,13 @@ def render_news(
                 f"""    <div class="article-number">{rank}</div>"""
                 f"""    <div class="article-content">"""
                 f"""        <div class="article-title">{article.title}</div>"""
-                f"""        <div class="article-summary">{summary_render}</div>"""
-                f"""    </div>"""
                 + (
-                    f"""    <div class="confidence-score">BREAKING (Reported {article.cluster_count} times)</div>"""
+                    f"""        <div class="article-breaking">BREAKING: Reported {article.cluster_count} times</div>"""
                     if article.cluster_count >= mean_report_count
                     else ""
                 )
-                + f"""</a>"""
+                + f"""        <div class="article-summary">{summary_render}</div>"""
+                f"""    </div>""" + f"""</a>"""
             )
             article_divs.append(div)
             rendered_articles.append(article.id)
