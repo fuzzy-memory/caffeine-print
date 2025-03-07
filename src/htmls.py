@@ -8,7 +8,7 @@ import pandas as pd
 from titlecase import titlecase
 
 from data_models import Article
-from properties import permitted_tags, total_news_items
+from properties import permitted_tags
 
 
 def ordinal(n: int):
@@ -134,13 +134,15 @@ def render_news(
     article_list = [
         Article(**json.loads(i.to_json())) for _, i in article_df.iterrows()
     ]
-    article_divs = [f"<p>Today's top {total_news_items} stories</p>"]
     mean_report_count = max(mean(i.cluster_count for i in article_list), 2)
+    article_divs = [f"<p>Today's top stories</p>"]
     rendered_articles = []
     for tag in permitted_tags.keys():
         rank = 1
         max_items = permitted_tags.get(tag)
         if max_items == 0:
+            continue
+        if len([i for i in article_list if i.tag==tag])==0:
             continue
         if tag != "national":
             article_divs.extend(['<hr class="rounded">'])
