@@ -104,15 +104,12 @@ def make_base_html():
                 border-radius: 5px;
                 margin-top: 5px;
             }}
-            .confidence-score {{
-                position: absolute;
-                bottom: 10px;
-                right: 15px;
-                font-size: 14px;
-                color: #bbbbbb;
-                background-color: #950606;
-                padding: 5px 10px 5px 10px;
-                border-radius: 5px;
+            .article-breaking {{
+                padding: 5px;
+                font-size: 18px;
+                font-weight: bold;
+                color: #950606;
+                font-style: italic;
             }}
         </style>
     </head>
@@ -165,13 +162,9 @@ def render_news(
                 f"""    <div class="article-number">{rank}</div>"""
                 f"""    <div class="article-content">"""
                 f"""        <div class="article-title">{article.title}</div>"""
+                +(f"""        <div class="article-breaking">BREAKING: Reported {article.cluster_count} times</div>""" if article.cluster_count>=mean_report_count else "")+
                 f"""        <div class="article-summary">{summary_render}</div>"""
                 f"""    </div>"""
-                + (
-                    f"""    <div class="confidence-score">BREAKING (Reported {article.cluster_count} times)</div>"""
-                    if article.cluster_count >= mean_report_count
-                    else ""
-                )
                 + f"""</a>"""
             )
             article_divs.append(div)
