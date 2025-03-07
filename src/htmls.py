@@ -134,8 +134,8 @@ def render_news(
     article_list = [
         Article(**json.loads(i.to_json())) for _, i in article_df.iterrows()
     ]
-    mean_report_count = mean(i.cluster_count for i in article_list)
     article_divs = [f"<p>Today's top {total_news_items} stories</p>"]
+    mean_report_count = max(mean(i.cluster_count for i in article_list), 2)
     rendered_articles = []
     for tag in permitted_tags.keys():
         rank = 1
