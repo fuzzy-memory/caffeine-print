@@ -49,7 +49,7 @@ def make_base_html():
                 padding: 10px;
             }}
             .container {{
-                padding: 40px;
+                width: 80vw;
                 margin: auto;
             }}
             .article-card {{
