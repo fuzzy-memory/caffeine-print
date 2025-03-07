@@ -142,7 +142,7 @@ def render_news(
         max_items = permitted_tags.get(tag)
         if max_items == 0:
             continue
-        if len([i for i in article_list if i.tag==tag])==0:
+        if len([i for i in article_list if i.tag == tag]) == 0:
             continue
         if tag != "national":
             article_divs.extend(['<hr class="rounded">'])
@@ -164,10 +164,13 @@ def render_news(
                 f"""    <div class="article-number">{rank}</div>"""
                 f"""    <div class="article-content">"""
                 f"""        <div class="article-title">{article.title}</div>"""
-                +(f"""        <div class="article-breaking">BREAKING: Reported {article.cluster_count} times</div>""" if article.cluster_count>=mean_report_count else "")+
-                f"""        <div class="article-summary">{summary_render}</div>"""
-                f"""    </div>"""
-                + f"""</a>"""
+                + (
+                    f"""        <div class="article-breaking">BREAKING: Reported {article.cluster_count} times</div>"""
+                    if article.cluster_count >= mean_report_count
+                    else ""
+                )
+                + f"""        <div class="article-summary">{summary_render}</div>"""
+                f"""    </div>""" + f"""</a>"""
             )
             article_divs.append(div)
             rendered_articles.append(article.id)
