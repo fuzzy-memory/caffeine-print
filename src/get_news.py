@@ -17,11 +17,11 @@ def generate_general_news_request_params(
     # Date limit vars
     today = datetime.date.today()
     latest = datetime.datetime.combine(
-        date=today - datetime.timedelta(days=0), time=datetime.time(0, 0, 0)
-    )
+        date=today - datetime.timedelta(days=1), time=datetime.time(23, 59, 59)
+    ).strftime("%Y-%m-%d %H:%M:%S")
     earliest = datetime.datetime.combine(
         date=today - datetime.timedelta(days=1), time=datetime.time(0, 0, 0)
-    )
+    ).strftime("%Y-%m-%d %H:%M:%S")
     offset = 0
     news_items_per_call = 100
     news_sources = ",".join(
