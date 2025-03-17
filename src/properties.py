@@ -22,8 +22,8 @@ assert sum(gpt_category_multipliers.values()) == 1.0
 
 is_weekday = datetime.date.today().weekday() <= 4
 total_news_items = 30 if is_weekday else 70
-international_news_items = 10 if is_weekday else 20
-national_news_items = 20 if is_weekday else 40
+international_news_items = 10 if is_weekday else 25
+national_news_items = 20 if is_weekday else 35
 literature_and_laurels = 0 if is_weekday else 10
 assert (
     national_news_items + international_news_items + literature_and_laurels
