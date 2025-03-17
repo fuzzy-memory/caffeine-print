@@ -142,6 +142,8 @@ def rank_articles(news_items: List[Article], test_mode: bool):
     # Compute final relevance
     relevance_scores = []
     for i, article in enumerate(gpt_scored_articles):
+        if article.gpt_feedback.bollywood_and_entertainment>=5:
+            continue
         source_score = source_scores.get(article.source, 0)
         chat_gpt_weighted_score, tag = calculate_gpt_weighted_score(
             article.gpt_feedback
