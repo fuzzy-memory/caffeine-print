@@ -10,21 +10,21 @@ from email.mime.text import MIMEText
 import nltk  # type: ignore
 from dotenv import load_dotenv
 
+from db import retrieve_recipients
 from get_news import get_news_from_api
 from htmls import get_formatted_date, render_news
 from ranking import rank_articles
 from similarity_clustering import deduplicate_articles
 
 
-def send_email(content: str):
+def send_email(content: str, test_mode: bool):
     date = get_formatted_date()
 
     sender_email = os.environ.get("SENDER_EMAIL")
     app_password = os.environ.get("GMAIL_APP_PASSWORD")
-    recipients_raw = os.environ.get("RECIPIENTS")
-    if not sender_email or not app_password or not recipients_raw:
-        raise ValueError("All required mailing vars not found in .env")
-    recipients = json.loads(recipients_raw)
+    recipients = retrieve_recipients(test_mode=test_mode)
+    if not sender_email or not app_password or not recipients:
+        raise ValueError("All required mailing vars not found")
 
     # Set up SMTP object
     smtp_server = smtplib.SMTP_SSL("smtp.gmail.com", 465)
@@ -71,4 +71,4 @@ if __name__ == "__main__":
         article_df=sorted_news,
         test_mode=testing_flag,
     )
-    send_email(content=complete_html)
+    send_email(content=complete_html, test_mode=testing_flag)
