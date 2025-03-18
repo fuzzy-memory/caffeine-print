@@ -100,7 +100,7 @@ def calculate_gpt_weighted_score(
     assert set(metric_dict.keys()) == set(gpt_category_multipliers.keys())
     highest_scoring_metric = max(metric_dict, key=metric_dict.get)  # type: ignore
     multiplier = gpt_category_multipliers.get(highest_scoring_metric)
-    if not multiplier:
+    if multiplier is None:
         raise ValueError(
             f"Unable to find multiplier for metric {highest_scoring_metric}"
         )
@@ -110,6 +110,8 @@ def calculate_gpt_weighted_score(
         tag = "international"
     elif highest_scoring_metric.startswith("indian"):
         tag = "national"
+    elif highest_scoring_metric == "bollywood_and_entertainment":
+        tag = "bollywood"
     else:
         raise ValueError("Could not resolve appropriate tag")
     return final_score, tag
@@ -163,6 +165,12 @@ def rank_articles(news_items: List[Article], test_mode: bool):
         article.relevance_score = relevance_scores[i][0]
         article.tag = relevance_scores[i][1]
         relevance_scored_articles.append(article)
+
+    relevance_scored_articles = [
+        i
+        for i in relevance_scored_articles
+        if i.gpt_feedback.bollywood_and_entertainment < 4 and i.tag != "bollywood"
+    ]
 
     print(f"Final scored news articles: {len(relevance_scored_articles)}")
     df = pd.DataFrame([i.to_json() for i in relevance_scored_articles])
