@@ -2,9 +2,11 @@ import datetime
 import json
 import re
 from statistics import mean
-from typing import List, Tuple
+from typing import Dict, List, Set, Tuple
 
+import numpy as np
 import pandas as pd
+from matplotlib import colors as mat_colours
 from titlecase import titlecase
 
 from data_models import Article
@@ -64,6 +66,7 @@ def make_base_html():
                 color: white;
                 border: none;
                 position: relative;
+                opacity: 100;
             }}
             .article-card:hover {{
                 background-color: #292929;
@@ -108,8 +111,8 @@ def make_base_html():
                 padding: 5px;
                 font-size: 18px;
                 font-weight: bold;
-                color: #950606;
                 font-style: italic;
+                opacity: 100;
             }}
         </style>
     </head>
@@ -127,6 +130,20 @@ def make_base_html():
     return header_html, footer_html
 
 
+def create_gradient(counts: Set[int]) -> Dict[int, str]:
+    max_cnt_hex = "#950606"
+    min_cnt_hex = "#069595"
+
+    max_cnt_rgb = np.array(mat_colours.hex2color(max_cnt_hex))
+    min_cnt_rgb = np.array(mat_colours.hex2color(min_cnt_hex))
+
+    gradients = [
+        mat_colours.to_hex((min_cnt_rgb * (1 - t) + max_cnt_rgb * t))
+        for t in np.linspace(0, 1, len(counts))
+    ]
+    return dict(zip(sorted(counts), gradients))
+
+
 def render_news(
     article_df: pd.DataFrame,
     test_mode: bool = False,
@@ -135,6 +152,8 @@ def render_news(
         Article(**json.loads(i.to_json())) for _, i in article_df.iterrows()
     ]
     mean_report_count = max(mean(i.cluster_count for i in article_list), 2)
+    report_counts = set(i.cluster_count for i in article_list)
+    gradient = create_gradient({i for i in report_counts if i != 1})
     article_divs = [f"<p>Today's top stories</p>"]
     rendered_articles = []
     for tag in permitted_tags.keys():
@@ -165,7 +184,7 @@ def render_news(
                 f"""    <div class="article-content">"""
                 f"""        <div class="article-title">{article.title}</div>"""
                 + (
-                    f"""        <div class="article-breaking">BREAKING: Reported {article.cluster_count} times</div>"""
+                    f"""        <div class="article-breaking", style="color: {gradient.get(article.cluster_count)}">BREAKING: Reported {article.cluster_count} times</div>"""
                     if article.cluster_count >= mean_report_count
                     else ""
                 )
