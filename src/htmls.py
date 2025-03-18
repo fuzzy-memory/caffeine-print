@@ -156,20 +156,17 @@ def render_news(
     gradient = create_gradient({i for i in report_counts if i != 1})
     article_divs = [f"<p>Today's top stories</p>"]
     rendered_articles = []
+    rank = 1
     for tag in permitted_tags.keys():
-        rank = 1
         max_items = permitted_tags.get(tag)
         if max_items == 0:
             continue
         if len([i for i in article_list if i.tag == tag]) == 0:
             continue
-        if tag != "national":
+        if tag == "awards_and_laurels":
             article_divs.extend(['<hr class="rounded">'])
-        article_divs.extend(
-            [
-                f"<h2>{titlecase(tag.replace('_', ' '))}{' news' if tag.endswith('national') else ''}</h2>"
-            ]
-        )
+            article_divs.extend([f"<h2>{titlecase(tag.replace('_', ' '))}</h2>"])
+            rank = 1
         render_items = [i for i in article_list if i.tag == tag][:max_items]
         for article in render_items:
             summary_render = (
