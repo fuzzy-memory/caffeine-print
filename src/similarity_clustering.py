@@ -27,6 +27,9 @@ def pick_article_from_cluster(articles: List[Article]):
         cluster_id = article.dbscan_cluster_label
         source = article.source
         source_rank = source_scores.get(source)
+        if source_rank is None:
+            article.is_skipped=True
+            continue
 
         if cluster_id not in clustered_articles:
             clustered_articles.update({cluster_id: article})
@@ -86,6 +89,8 @@ def deduplicate_articles(test_mode: bool = False):
     }
     for article in news_items:
         article.cluster_count = cluster_counts.get(article.dbscan_cluster_label)
+        if article.source not in source_scores_json.keys():
+            news_items.pop(news_items.index(article))
 
     if test_mode:
         pd.DataFrame(
