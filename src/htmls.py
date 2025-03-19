@@ -151,7 +151,7 @@ def render_news(
     article_list = [
         Article(**json.loads(i.to_json())) for _, i in article_df.iterrows()
     ]
-    mean_report_count = max(mean(i.cluster_count for i in article_list), 2)
+    mean_report_count = max(round(mean(i.cluster_count for i in article_list)), 2)
     report_counts = set(i.cluster_count for i in article_list)
     gradient = create_gradient({i for i in report_counts if i != 1})
     article_divs = [f"<p>Today's top stories</p>"]
