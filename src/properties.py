@@ -8,7 +8,7 @@ overall_weights = {
     "sentiment": 0.05,
     "text": 0.1,
     "score": 0.78,
-    "confidence": 0.02,
+    "cluster_count": 0.02,
 }
 gpt_category_multipliers = {
     "indian_polity": 0.5,
