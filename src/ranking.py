@@ -105,7 +105,7 @@ def calculate_gpt_weighted_score(
             f"Unable to find multiplier for metric {highest_scoring_metric}"
         )
     metric_sum = sum(metric_dict.values())
-    final_score = multiplier * metric_sum / (len(gpt_category_multipliers.keys()) * 10)
+    final_score = multiplier * metric_sum / (len(gpt_category_multipliers.keys()))
     if highest_scoring_metric in ["geopolitics", "global_current_affairs"]:
         tag = "international"
     elif highest_scoring_metric.startswith("indian"):
@@ -151,7 +151,7 @@ def rank_articles(news_items: List[Article], test_mode: bool):
         score = (
             overall_weights["source"] * source_score
             + overall_weights["sentiment"] * sentiment_scores[i] * 10
-            + overall_weights["score"] * chat_gpt_weighted_score
+            + overall_weights["score"] * chat_gpt_weighted_score * 10
             + overall_weights["text"] * text_scores[i] * 100
             + overall_weights["cluster_count"] * article.cluster_count
         )
@@ -169,7 +169,7 @@ def rank_articles(news_items: List[Article], test_mode: bool):
     relevance_scored_articles = [
         i
         for i in relevance_scored_articles
-        if i.gpt_feedback.bollywood_and_entertainment < 4 and i.tag != "bollywood"
+        if i.gpt_feedback.bollywood_and_entertainment < 0.4 and i.tag != "bollywood"
     ]
 
     print(f"Final scored news articles: {len(relevance_scored_articles)}")
