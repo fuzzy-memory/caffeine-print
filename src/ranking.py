@@ -44,6 +44,7 @@ def rank_via_chatgpt(news: List[Article]):
                 indian_local_news=0,
                 global_current_affairs=0,
                 geopolitics=0,
+                bollywood_and_entertainment=0,
             )
             scored_articles.append(article)
             total_time += time.time() - start
