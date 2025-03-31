@@ -15,9 +15,14 @@ class GPTArticleEvaluationMetrics(BaseModel):
 
     @model_validator(mode="after")
     def __validate_metrics(self):
+        total = 0
         for attr in vars(self).keys():
             setattr(self, attr, max(0, getattr(self, attr)))
             setattr(self, attr, min(1, getattr(self, attr)))
+            total += getattr(self, attr)
+        if not 0 <= total <= 1:
+            for attr in vars(self).keys():
+                setattr(self, attr, 0)
         return self
 
     def __str__(self):
