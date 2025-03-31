@@ -16,7 +16,7 @@ gpt_category_multipliers = {
     "geopolitics": 0.125,
     "global_current_affairs": 0.125,
     "indian_local_news": -0.05,
-    "bollywood_and_entertainment": 0,
+    "entertainment": 0,
 }
 assert sum(gpt_category_multipliers.values()) == 1.0
 

@@ -44,7 +44,7 @@ def rank_via_chatgpt(news: List[Article]):
                 indian_local_news=0,
                 global_current_affairs=0,
                 geopolitics=0,
-                bollywood_and_entertainment=0,
+                entertainment=0,
             )
             scored_articles.append(article)
             total_time += time.time() - start
@@ -111,7 +111,7 @@ def calculate_gpt_weighted_score(
         tag = "international"
     elif highest_scoring_metric.startswith("indian"):
         tag = "national"
-    elif highest_scoring_metric == "bollywood_and_entertainment":
+    elif highest_scoring_metric == "entertainment":
         tag = "bollywood"
     else:
         raise ValueError("Could not resolve appropriate tag")
@@ -170,7 +170,7 @@ def rank_articles(news_items: List[Article], test_mode: bool):
     relevance_scored_articles = [
         i
         for i in relevance_scored_articles
-        if i.gpt_feedback.bollywood_and_entertainment < 0.4 and i.tag != "bollywood"
+        if i.gpt_feedback.entertainment < 0.4 and i.tag != "bollywood"
     ]
 
     print(f"Final scored news articles: {len(relevance_scored_articles)}")

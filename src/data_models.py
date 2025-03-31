@@ -11,7 +11,7 @@ class GPTArticleEvaluationMetrics(BaseModel):
     global_current_affairs: float
     geopolitics: float
     indian_local_news: float
-    bollywood_and_entertainment: float
+    entertainment: float
 
     @model_validator(mode="after")
     def __validate_metrics(self):
@@ -26,7 +26,7 @@ class GPTArticleEvaluationMetrics(BaseModel):
         return self
 
     def __str__(self):
-        return f"[Polity: {self.indian_polity} | Economy: {self.indian_economy} | Global CA: {self.global_current_affairs} | Geopol: {self.geopolitics} | Local: {self.indian_local_news} | Entertainment: {self.bollywood_and_entertainment}]"
+        return f"[Polity: {self.indian_polity} | Economy: {self.indian_economy} | Global CA: {self.global_current_affairs} | Geopol: {self.geopolitics} | Local: {self.indian_local_news} | Entertainment: {self.entertainment}]"
 
 
 class Article(BaseModel):
