@@ -20,35 +20,9 @@ class GPTArticleEvaluationMetrics(BaseModel):
 
     @model_validator(mode="after")
     def __validate_metrics(self):
-        d = vars(self)
-        total = round(sum(d.values()), 10)
-
-        # If all attrs have a value of 1 or higher, set all of them to 0
-        if total >= len(gpt_category_multipliers.keys()):
-            for attr in vars(self).keys():
-                setattr(self, attr, 0)
-            return self
-
-        # If any subset of attrs has a value higher than 1:
-        #   1. Get the sum of the other attrs (normal attrs)
-        #   2. Get the difference between the sum of the normal attrs and 1
-        #   3. Replace the values of the anomalous attrs with the quotient of difference from the prev step and number of anomalous attrs
-        if 1 < total < len(gpt_category_multipliers.keys()):
-            attrs_higher_than_1 = []
-            normal_attrs = []
-            for attr in vars(self).keys():
-                val = getattr(self, attr)
-                if val >= 1:
-                    attrs_higher_than_1.append(attr)
-                else:
-                    normal_attrs.append(attr)
-            normal_attrs_sum = sum([getattr(self, i) for i in normal_attrs])
-            remaining = 1.0 - normal_attrs_sum
-            for attr in vars(self):
-                if attr in attrs_higher_than_1:
-                    setattr(self, attr, round(remaining / len(attrs_higher_than_1), 4))
-                else:
-                    setattr(self, attr, 0)
+        for attr in vars(self).keys():
+            setattr(self, attr, max(0, getattr(self, attr)))
+            setattr(self, attr, min(10, getattr(self, attr)))
         return self
 
     def __str__(self):
