@@ -94,19 +94,28 @@ def run_tfidf(gpt_processed_articles: List[Article]):
     return text_scores
 
 
+def softmax(metrics: Dict[str, float]) -> Dict[str, np.float64]:
+    metric_arr = np.array(list(metrics.values()))
+    exp_arr = np.exp(metric_arr)
+    softmax_vals = exp_arr / np.sum(exp_arr)
+    return dict(zip(metrics.keys(), softmax_vals))
+
+
 def calculate_gpt_weighted_score(
     metrics: GPTArticleEvaluationMetrics,
 ) -> Tuple[float, str]:
     metric_dict = vars(metrics)
     assert set(metric_dict.keys()) == set(gpt_category_multipliers.keys())
-    highest_scoring_metric = max(metric_dict, key=metric_dict.get)  # type: ignore
+    softmax_metrics = softmax(metric_dict)
+    highest_scoring_metric = max(softmax_metrics, key=softmax_metrics.get)  # type: ignore
+    highest_scoring_value = max(softmax_metrics.values())
     multiplier = gpt_category_multipliers.get(highest_scoring_metric)
     if multiplier is None:
         raise ValueError(
             f"Unable to find multiplier for metric {highest_scoring_metric}"
         )
-    metric_sum = sum(metric_dict.values())
-    final_score = multiplier * metric_sum / (len(gpt_category_multipliers.keys()))
+
+    final_score = multiplier * highest_scoring_value
     if highest_scoring_metric in ["geopolitics", "global_current_affairs"]:
         tag = "international"
     elif highest_scoring_metric.startswith("indian"):
