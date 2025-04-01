@@ -1,9 +1,15 @@
 from typing import Optional
 
-from pydantic import BaseModel, ConfigDict, field_validator, model_validator
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    computed_field,
+    field_validator,
+    model_validator,
+)
 
 from properties import (
-    gpt_category_multipliers,
+    overall_weights,
     permitted_callers,
     permitted_tags,
     sentiment_threshold,
@@ -29,6 +35,37 @@ class GPTArticleEvaluationMetrics(BaseModel):
         return f"[Polity: {self.indian_polity} | Economy: {self.indian_economy} | Global CA: {self.global_current_affairs} | Geopol: {self.geopolitics} | Local: {self.indian_local_news} | Entertainment: {self.entertainment}]"
 
 
+class ArticleScoreMetrics(BaseModel):
+    source_score: float
+    sentiment_score: float
+    gpt_feedback_score: float
+    text_score: float
+    cluster_count: float
+
+    @computed_field
+    @property
+    def relevance(self) -> float:
+        return (
+            self.source_score * overall_weights.get("source")
+            + self.sentiment_score * overall_weights.get("sentiment") * 10
+            + self.gpt_feedback_score * overall_weights.get("score") * 10
+            + self.text_score * overall_weights.get("text") * 100
+            + self.cluster_count * overall_weights.get("cluster_count")
+        )
+
+    def to_json(self):
+        return {
+            "source_score": self.source_score,
+            "sentiment_score": self.sentiment_score,
+            "gpt_feedback_score": self.gpt_feedback_score,
+            "text_score": self.text_score,
+            "cluster_count": self.cluster_count,
+        }
+
+    def __str__(self):
+        return f"[Source: {self.source_score} | Sentiment: {self.sentiment_score} | GPT: {self.gpt_feedback_score} | TF-IDF: {self.text_score} | Count: {self.cluster_count} | Relevance: {self.relevance}]"
+
+
 class Article(BaseModel):
     model_config = ConfigDict(arbitrary_types_allowed=True)
     id: int
@@ -39,6 +76,7 @@ class Article(BaseModel):
     sentiment: float
     source: Optional[str] = None
     gpt_feedback: Optional[GPTArticleEvaluationMetrics] = None
+    relevance_trace: Optional[ArticleScoreMetrics] = None
     relevance_score: Optional[float] = 0.0
     is_skipped: Optional[bool] = False
     bert_processed_text: Optional[str] = None
@@ -84,7 +122,13 @@ class Article(BaseModel):
         return f"{prefix}{st}{suffix}"
 
     def to_json(self):
-        base_dict = {k: v for k, v in vars(self).items() if k != "gpt_feedback"}
+        base_dict = {
+            k: v
+            for k, v in vars(self).items()
+            if k not in ["gpt_feedback", "bert_processed_text", "relevance_trace"]
+        }
         if self.gpt_feedback:
             base_dict.update(vars(self.gpt_feedback))
+        if self.relevance_trace:
+            base_dict.update(self.relevance_trace.to_json())
         return base_dict

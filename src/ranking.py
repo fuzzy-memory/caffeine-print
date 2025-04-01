@@ -11,8 +11,8 @@ from sklearn.feature_extraction.text import TfidfVectorizer  # type: ignore
 from tenacity import retry, stop_after_attempt, wait_exponential
 from tqdm import tqdm
 
-from data_models import Article, GPTArticleEvaluationMetrics
-from properties import gpt_category_multipliers, overall_weights, testing_gpt_threshold
+from data_models import Article, ArticleScoreMetrics, GPTArticleEvaluationMetrics
+from properties import gpt_category_multipliers, testing_gpt_threshold
 from utils import generate_prompt
 
 max_openai_retires = 5
@@ -143,29 +143,25 @@ def rank_articles(news_items: List[Article], test_mode: bool):
     source_scores = json.load(open("assets/news_sources.json", "r"))
 
     # Compute final relevance
-    relevance_scores = []
+    relevance_scored_articles = []
     for i, article in enumerate(gpt_scored_articles):
         source_score = source_scores.get(article.source, 0)
         chat_gpt_weighted_score, tag = calculate_gpt_weighted_score(
             article.gpt_feedback
         )
-        score = (
-            overall_weights["source"] * source_score
-            + overall_weights["sentiment"] * sentiment_scores[i] * 10
-            + overall_weights["score"] * chat_gpt_weighted_score * 10
-            + overall_weights["text"] * text_scores[i] * 100
-            + overall_weights["cluster_count"] * article.cluster_count
+        article.relevance_trace = ArticleScoreMetrics(
+            source_score=source_score,
+            sentiment_score=sentiment_scores[i],
+            gpt_feedback_score=chat_gpt_weighted_score,
+            text_score=text_scores[i],
+            cluster_count=article.cluster_count,
         )
-        if article.api_query_category == "laurels":
-            tag = "awards_and_laurels"
-        relevance_scores.append([score, tag])
-    print(f"Calculated {len(relevance_scores)} relevance scores")
-
-    relevance_scored_articles = []
-    for i, article in enumerate(gpt_scored_articles):
-        article.relevance_score = relevance_scores[i][0]
-        article.tag = relevance_scores[i][1]
+        article.relevance_score = article.relevance_trace.relevance
+        article.tag = (
+            "awards_and_laurels" if article.api_query_category == "laurels" else tag
+        )
         relevance_scored_articles.append(article)
+    print(f"Calculated {len(relevance_scored_articles)} relevance scores")
 
     relevance_scored_articles = [
         i
