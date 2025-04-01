@@ -121,7 +121,7 @@ def calculate_gpt_weighted_score(
     elif highest_scoring_metric.startswith("indian"):
         tag = "national"
     elif highest_scoring_metric == "entertainment":
-        tag = "bollywood"
+        tag = "entertainment"
     else:
         raise ValueError("Could not resolve appropriate tag")
     return final_score, tag
@@ -175,7 +175,7 @@ def rank_articles(news_items: List[Article], test_mode: bool):
     relevance_scored_articles = [
         i
         for i in relevance_scored_articles
-        if i.gpt_feedback.entertainment < 0.4 and i.tag != "bollywood"
+        if i.gpt_feedback.entertainment < 4 and i.tag != "entertainment"
     ]
 
     print(f"Final scored news articles: {len(relevance_scored_articles)}")
