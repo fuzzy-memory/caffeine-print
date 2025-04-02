@@ -11,8 +11,8 @@ from sklearn.feature_extraction.text import TfidfVectorizer  # type: ignore
 from tenacity import retry, stop_after_attempt, wait_exponential
 from tqdm import tqdm
 
-from data_models import Article, GPTArticleEvaluationMetrics
-from properties import gpt_category_multipliers, overall_weights, testing_gpt_threshold
+from data_models import Article, ArticleScoreMetrics, GPTArticleEvaluationMetrics
+from properties import gpt_category_multipliers, testing_gpt_threshold
 from utils import generate_prompt
 
 max_openai_retires = 5
@@ -44,6 +44,7 @@ def rank_via_chatgpt(news: List[Article]):
                 indian_local_news=0,
                 global_current_affairs=0,
                 geopolitics=0,
+                entertainment=0,
             )
             scored_articles.append(article)
             total_time += time.time() - start
@@ -93,25 +94,34 @@ def run_tfidf(gpt_processed_articles: List[Article]):
     return text_scores
 
 
+def softmax(metrics: Dict[str, float]) -> Dict[str, np.float64]:
+    metric_arr = np.array(list(metrics.values()))
+    exp_arr = np.exp(metric_arr)
+    softmax_vals = exp_arr / np.sum(exp_arr)
+    return dict(zip(metrics.keys(), softmax_vals))
+
+
 def calculate_gpt_weighted_score(
     metrics: GPTArticleEvaluationMetrics,
 ) -> Tuple[float, str]:
     metric_dict = vars(metrics)
     assert set(metric_dict.keys()) == set(gpt_category_multipliers.keys())
-    highest_scoring_metric = max(metric_dict, key=metric_dict.get)  # type: ignore
+    softmax_metrics = softmax(metric_dict)
+    highest_scoring_metric = max(softmax_metrics, key=softmax_metrics.get)  # type: ignore
+    highest_scoring_value = max(softmax_metrics.values())
     multiplier = gpt_category_multipliers.get(highest_scoring_metric)
     if multiplier is None:
         raise ValueError(
             f"Unable to find multiplier for metric {highest_scoring_metric}"
         )
-    metric_sum = sum(metric_dict.values())
-    final_score = multiplier * metric_sum / (len(gpt_category_multipliers.keys()) * 10)
+
+    final_score = multiplier * highest_scoring_value
     if highest_scoring_metric in ["geopolitics", "global_current_affairs"]:
         tag = "international"
     elif highest_scoring_metric.startswith("indian"):
         tag = "national"
-    elif highest_scoring_metric == "bollywood_and_entertainment":
-        tag = "bollywood"
+    elif highest_scoring_metric == "entertainment":
+        tag = "entertainment"
     else:
         raise ValueError("Could not resolve appropriate tag")
     return final_score, tag
@@ -142,34 +152,30 @@ def rank_articles(news_items: List[Article], test_mode: bool):
     source_scores = json.load(open("assets/news_sources.json", "r"))
 
     # Compute final relevance
-    relevance_scores = []
+    relevance_scored_articles = []
     for i, article in enumerate(gpt_scored_articles):
         source_score = source_scores.get(article.source, 0)
         chat_gpt_weighted_score, tag = calculate_gpt_weighted_score(
             article.gpt_feedback
         )
-        score = (
-            overall_weights["source"] * source_score
-            + overall_weights["sentiment"] * sentiment_scores[i] * 10
-            + overall_weights["score"] * chat_gpt_weighted_score
-            + overall_weights["text"] * text_scores[i] * 100
-            + overall_weights["confidence"] * article.cluster_count
+        article.relevance_trace = ArticleScoreMetrics(
+            source_score=source_score,
+            sentiment_score=sentiment_scores[i],
+            gpt_feedback_score=chat_gpt_weighted_score,
+            text_score=text_scores[i],
+            cluster_count=article.cluster_count,
         )
-        if article.api_query_category == "laurels":
-            tag = "awards_and_laurels"
-        relevance_scores.append([score, tag])
-    print(f"Calculated {len(relevance_scores)} relevance scores")
-
-    relevance_scored_articles = []
-    for i, article in enumerate(gpt_scored_articles):
-        article.relevance_score = relevance_scores[i][0]
-        article.tag = relevance_scores[i][1]
+        article.relevance_score = article.relevance_trace.relevance
+        article.tag = (
+            "awards_and_laurels" if article.api_query_category == "laurels" else tag
+        )
         relevance_scored_articles.append(article)
+    print(f"Calculated {len(relevance_scored_articles)} relevance scores")
 
     relevance_scored_articles = [
         i
         for i in relevance_scored_articles
-        if i.gpt_feedback.bollywood_and_entertainment < 4 and i.tag != "bollywood"
+        if i.gpt_feedback.entertainment < 4 and i.tag != "entertainment"
     ]
 
     print(f"Final scored news articles: {len(relevance_scored_articles)}")
