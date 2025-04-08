@@ -59,7 +59,7 @@ def deduplicate_articles(test_mode: bool = False):
         Article(**i)
         for i in json.load(open(path_to_read, "r"))
         if all(i.get(k) is not None for k in ["title", "summary", "text"])
-        and "newsletter" not in i.get("url")
+        and any(x not in i.get("url") for x in negative_filters)
     ]
     news_items = [i for i in news_items_raw if not i.is_skipped]
     print(f"Parsed {len(news_items)} articles from JSON")
