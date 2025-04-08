@@ -1,0 +1,29 @@
+{
+  "source_scores": {
+    "https://economictimes.indiatimes.com": 9,
+    "https://www.ndtv.com": 4,
+    "https://www.indiatoday.in": 9,
+    "https://www.thehindubusinessline.com": 8,
+    "https://www.thehindu.com": 10,
+    "https://pib.gov.in": 5,
+    "https://www.tribuneindia.com": 4,
+    "https://www.timesnownews.com": 3,
+    "https://www.hindustantimes.com": 10,
+    "https://timesofindia.indiatimes.com": 2,
+    "https://scroll.in": 1
+  },
+  "negative_filters": [
+    "bengaluru",
+    "football",
+    "wealth",
+    "sports",
+    "opinion",
+    "auto",
+    "noida-news",
+    "money-and-banking",
+    "videos",
+    "entertainment",
+    "newsletter",
+    "banking"
+  ]
+}
