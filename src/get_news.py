@@ -25,7 +25,7 @@ def generate_general_news_request_params(
     offset = 0
     news_items_per_call = 100
     news_sources = ",".join(
-        [i.strip() for i in json.load(open("assets/news_sources.json", "r")).keys()]
+        [i.strip() for i in json.load(open("assets/control.json", "r")).get("source_scores").keys()]
     )
 
     # API ops

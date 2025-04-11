@@ -149,7 +149,7 @@ def rank_articles(news_items: List[Article], test_mode: bool):
     text_scores = run_tfidf(gpt_processed_articles=gpt_scored_articles)
     print(f"Generated TF-IDF scoring for {len(text_scores)} articles")
     sentiment_scores = [abs(i.sentiment) for i in gpt_scored_articles]
-    source_scores = json.load(open("assets/news_sources.json", "r"))
+    source_scores = json.load(open("assets/control.json", "r")).get("source_scores")
 
     # Compute final relevance
     relevance_scored_articles = []

@@ -49,7 +49,9 @@ def pick_article_from_cluster(articles: List[Article], source_scores: Dict[str, 
 
 
 def deduplicate_articles(test_mode: bool = False):
-    source_scores_json = json.load(open("assets/news_sources.json", "r"))
+    control_json=json.load(open("assets/control.json", "r"))
+    source_scores_json = control_json.get("source_scores")
+    negative_filters = control_json.get("negative_filters")
 
     # Read news items
     path_to_read = "assets/" + ("test/" if test_mode else "") + "news.json"
@@ -57,7 +59,7 @@ def deduplicate_articles(test_mode: bool = False):
         Article(**i)
         for i in json.load(open(path_to_read, "r"))
         if all(i.get(k) is not None for k in ["title", "summary", "text"])
-        and "newsletter" not in i.get("url")
+        and any(x not in i.get("url") for x in negative_filters)
     ]
     news_items = [i for i in news_items_raw if not i.is_skipped]
     print(f"Parsed {len(news_items)} articles from JSON")
