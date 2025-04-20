@@ -20,7 +20,6 @@ def preprocess_text(text: str):
 
 
 def pick_article_from_cluster(articles: List[Article], source_scores: Dict[str, int]):
-
     clustered_articles = {}
     for article in articles:
         cluster_id = article.dbscan_cluster_label
@@ -49,7 +48,7 @@ def pick_article_from_cluster(articles: List[Article], source_scores: Dict[str, 
 
 
 def deduplicate_articles(test_mode: bool = False):
-    control_json=json.load(open("assets/control.json", "r"))
+    control_json = json.load(open("assets/control.json", "r"))
     source_scores_json = control_json.get("source_scores")
     negative_filters = control_json.get("negative_filters")
 
@@ -59,9 +58,21 @@ def deduplicate_articles(test_mode: bool = False):
         Article(**i)
         for i in json.load(open(path_to_read, "r"))
         if all(i.get(k) is not None for k in ["title", "summary", "text"])
-        and all(x not in i.get("url") for x in negative_filters)
     ]
-    news_items = [i for i in news_items_raw if not i.is_skipped]
+    news_items = []
+    for raw_art in news_items_raw:
+        top_category = [
+            x.strip()
+            for x in raw_art.url.replace(raw_art.source, "").split("/")
+            if x.strip() != ""
+        ][0]
+        if (
+            (top_category not in negative_filters)
+            and all(not top_category.startswith(i) for i in negative_filters)
+            and ("videoshow" not in raw_art.url)
+            and (not raw_art.is_skipped)
+        ):
+            news_items.append(raw_art)
     print(f"Parsed {len(news_items)} articles from JSON")
 
     # Load SBERT model

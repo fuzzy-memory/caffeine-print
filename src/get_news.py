@@ -25,7 +25,12 @@ def generate_general_news_request_params(
     offset = 0
     news_items_per_call = 100
     news_sources = ",".join(
-        [i.strip() for i in json.load(open("assets/control.json", "r")).get("source_scores").keys()]
+        [
+            i.strip()
+            for i in json.load(open("assets/control.json", "r"))
+            .get("source_scores")
+            .keys()
+        ]
     )
 
     # API ops
@@ -121,9 +126,7 @@ def make_api_calls(
 
     # Pagination calls
     while True:
-        if test_mode:
-            break
-        if remaining_items <= 0 or remaining_quota <= 1:
+        if test_mode or remaining_items <= 0 or remaining_quota <= 1:
             break
         params.update({"offset": offset, "number": news_items_per_call})
         next_response = requests.get(url, headers=headers, params=params)
@@ -134,7 +137,7 @@ def make_api_calls(
             news_items.extend(next_response.json().get("news"))
             remaining_items -= received
             offset += news_items_per_call
-            remaining_quota = float(first_response.headers.get("X-API-Quota-Left"))  # type: ignore
+            remaining_quota = float(next_response.headers.get("X-API-Quota-Left"))  # type: ignore
             print(
                 f"Retrieved {len(news_items)} items in total. "
                 + (f"{remaining_items} to go" if remaining_items >= 0 else "")
