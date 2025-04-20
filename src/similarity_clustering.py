@@ -20,7 +20,6 @@ def preprocess_text(text: str):
 
 
 def pick_article_from_cluster(articles: List[Article], source_scores: Dict[str, int]):
-
     clustered_articles = {}
     for article in articles:
         cluster_id = article.dbscan_cluster_label
@@ -49,7 +48,7 @@ def pick_article_from_cluster(articles: List[Article], source_scores: Dict[str, 
 
 
 def deduplicate_articles(test_mode: bool = False):
-    control_json=json.load(open("assets/control.json", "r"))
+    control_json = json.load(open("assets/control.json", "r"))
     source_scores_json = control_json.get("source_scores")
     negative_filters = control_json.get("negative_filters")
 
