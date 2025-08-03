@@ -6,14 +6,14 @@ testing_gpt_threshold = 5
 overall_weights = {
     "source": 0.05,
     "sentiment": 0.05,
-    "text": 0.1,
-    "score": 0.78,
-    "cluster_count": 0.02,
+    "text": 0.05,
+    "score": 0.8,
+    "cluster_count": 0.05,
 }
 gpt_category_multipliers = {
-    "indian_polity": 0.5,
-    "indian_economy": 0.3,
-    "geopolitics": 0.125,
+    "indian_polity": 0.65,
+    "indian_economy": 0.1,
+    "geopolitics": 0.175,
     "global_current_affairs": 0.125,
     "indian_local_news": -0.05,
     "entertainment": 0,
