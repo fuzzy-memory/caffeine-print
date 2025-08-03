@@ -61,15 +61,15 @@ def deduplicate_articles(test_mode: bool = False):
     ]
     news_items = []
     for raw_art in news_items_raw:
-        top_category = [
+        top_categories = set(i.strip("-") for i in [
             x.strip()
             for x in raw_art.url.replace(raw_art.source, "").split("/")
             if x.strip() != ""
-        ][0]
+        ][:4] if i.strip("-").count("-")<=2)
+
         if (
-            (top_category not in negative_filters)
-            and all(not top_category.startswith(i) for i in negative_filters)
-            and ("videoshow" not in raw_art.url)
+            all(i not in negative_filters for i in top_categories)
+            and (all(x not in raw_art.url for x in ["videoshow", "nyt-connections"]))
             and (not raw_art.is_skipped)
         ):
             news_items.append(raw_art)
