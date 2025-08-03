@@ -23,7 +23,7 @@ max_openai_retires = 5
     stop=stop_after_attempt(max_openai_retires),
 )
 def call_model(prompt: List[Dict[str, str]], client) -> Optional[ChatCompletion]:
-    response = client.beta.chat.completions.parse(
+    response = client.chat.completions.parse(
         model=model, messages=prompt, response_format=GPTArticleEvaluationMetrics  # type: ignore
     )
     return response
