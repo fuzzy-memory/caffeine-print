@@ -36,3 +36,4 @@ permitted_tags = {
     "awards_and_laurels": literature_and_laurels,
 }
 permitted_callers = ["general", "laurels"]
+chatgpt_model = "gpt-4.1-nano-2025-04-14"

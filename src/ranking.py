@@ -12,7 +12,7 @@ from tenacity import retry, stop_after_attempt, wait_exponential
 from tqdm import tqdm
 
 from data_models import Article, ArticleScoreMetrics, GPTArticleEvaluationMetrics
-from properties import gpt_category_multipliers, testing_gpt_threshold
+from properties import gpt_category_multipliers, testing_gpt_threshold, chatgpt_model as model
 from utils import generate_prompt
 
 max_openai_retires = 5
@@ -23,7 +23,6 @@ max_openai_retires = 5
     stop=stop_after_attempt(max_openai_retires),
 )
 def call_model(prompt: List[Dict[str, str]], client) -> Optional[ChatCompletion]:
-    model = "gpt-4o-mini"
     response = client.beta.chat.completions.parse(
         model=model, messages=prompt, response_format=GPTArticleEvaluationMetrics  # type: ignore
     )
@@ -131,9 +130,9 @@ def rank_articles(news_items: List[Article], test_mode: bool):
     if test_mode:
         dir_path = "assets/test/"
         pth = os.path.join(os.path.curdir, dir_path)
-        if "chatgpt_ranking.json" in os.listdir(pth):
-            df = pd.read_json("assets/test/chatgpt_ranking.json")
-            print(f"{df.shape[0]} ranked articles already exist in `assets/test`")
+        if f"chatgpt_ranking_{model}.json" in os.listdir(pth):
+            df = pd.read_json(f"assets/test/chatgpt_ranking_{model}.json")
+            print(f"{df.shape[0]} ranked articles using {model} already exist in `assets/test`")
             return df
         else:
             if not testing_gpt_threshold:
@@ -187,5 +186,6 @@ def rank_articles(news_items: List[Article], test_mode: bool):
         ignore_index=True,
     )
     if test_mode:
-        df.to_json("assets/test/chatgpt_ranking.json", orient="records")
+        df.to_json(f"assets/test/chatgpt_ranking_{model}.json", orient="records")
+        df[['title', 'indian_polity', 'indian_economy', 'global_current_affairs', 'geopolitics', 'indian_local_news', 'entertainment', 'gpt_feedback_score', 'relevance_score']].to_excel(f"assets/test/short_chatgpt_ranking_{model}.xlsx")
     return df
