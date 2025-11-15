@@ -21,6 +21,8 @@ def generate_prompt(article_text: str) -> List[Dict[str, str]]:
                 f"\t6. Movies, music and entertainment (entertainment)\n"
                 f"If the article reports extreme cases of sexual assault, reduce all scores by 4. "
                 f"If the article reports incidents extremely localised to any province of India or any other country, increase the indian_local_news by score by 6. "
+                f"If the article has an overly sensational title or body, reduce all scores by 3. "
+                f"If the article mentions any celebrity, retired sports person or former move star caught doing something illegal, set the entertainment score to 10 and reduce all other scores to 2."
                 f"The article is as follows:\n{article_text}"
             ),
         },
