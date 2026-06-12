@@ -9,8 +9,7 @@
     "https://www.tribuneindia.com": 4,
     "https://www.timesnownews.com": 3,
     "https://www.hindustantimes.com": 10,
-    "https://timesofindia.indiatimes.com": 2,
-    "https://scroll.in": 1
+    "https://timesofindia.indiatimes.com": 2
   },
   "negative_filters": [
     "bengaluru",
