@@ -20,7 +20,8 @@ dependencies = [
     "matplotlib (>=3.10.1,<4.0.0)",
     "sqlalchemy (>=2.0.39,<3.0.0)",
     "psycopg2-binary (>=2.9.10,<3.0.0)",
-    "sqlalchemy-cockroachdb (>=2.0.2,<3.0.0)"
+    "sqlalchemy-cockroachdb (>=2.0.2,<3.0.0)",
+    "requests (>=2.34.2,<3.0.0)",
 ]
 
 [tool.poetry]
