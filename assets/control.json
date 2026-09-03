@@ -1,5 +1,6 @@
 {
   "current_affairs": {
+    "dbscan_epsilon":0.25,
     "source_scores": {
       "https://economictimes.indiatimes.com": 9,
       "https://www.ndtv.com": 4,
@@ -41,6 +42,7 @@
     "positive_filters": []
   },
   "business": {
+    "dbscan_epsilon":0.25,
     "source_scores": {
       "https://www.thehindubusinessline.com": 10,
       "https://economictimes.indiatimes.com": 10,
