@@ -35,5 +35,4 @@ permitted_tags = {
     "international": international_news_items,
     "awards_and_laurels": literature_and_laurels,
 }
-permitted_callers = ["general", "laurels"]
 chatgpt_model = "gpt-4.1-nano-2025-04-14"
