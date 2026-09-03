@@ -152,14 +152,10 @@ def make_api_calls(
     return news_items, remaining_quota
 
 
-def get_news_from_api(test_mode: bool = False):
-    if test_mode:
-        dir_path = "assets/test/"
-        pth = os.path.join(os.path.curdir, dir_path)
-        if "news.json" in os.listdir(pth):
-            item_count = len(json.load(open("assets/test/news.json", "r")))
-            print(f"{item_count} articles already extracted in `assets/test`")
-            return
+def get_news_from_api():
+    test_mode = TestingMode().get_testing_mode()
+    channel = SelectedChannel().get_channel()
+    logger = logging.getLogger(__name__)
 
     # Set vars
     api_key = os.environ.get("WORLDNEWSAPI_KEY")

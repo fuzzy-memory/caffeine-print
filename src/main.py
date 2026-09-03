@@ -63,7 +63,6 @@ def setup():
         ssl._create_default_https_context = _create_unverified_https_context
     nltk.download("stopwords", quiet=True)
 
-    get_news_from_api(test_mode=testing_flag)
 
 def sanitize_channel_input(raw_str: str) -> ChannelEnum:
     cleaned = raw_str.lower().strip()
@@ -88,6 +87,7 @@ if __name__ == "__main__":
     logger.info(f"Setting channel to {SelectedChannel().get_channel().value}")
     logger.info(f"Setting testing mode to {TestingMode().get_testing_mode()}")
 
+    get_news_from_api()
     print("----------")
     dedup_processed_news = deduplicate_articles(test_mode=testing_flag)
     print("----------")
