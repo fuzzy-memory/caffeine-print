@@ -1,5 +1,4 @@
-import datetime
-import json
+import logging
 import os
 import smtplib
 import ssl
@@ -15,6 +14,7 @@ from get_news import get_news_from_api
 from htmls import get_formatted_date, render_news
 from ranking import rank_articles
 from similarity_clustering import deduplicate_articles
+from singletons import ChannelEnum, SelectedChannel, TestingMode
 
 
 def send_email(content: str, test_mode: bool):
@@ -63,11 +63,31 @@ def setup():
         ssl._create_default_https_context = _create_unverified_https_context
     nltk.download("stopwords", quiet=True)
 
-    if testing_flag:
-        print("----- RUNNING IN TEST MODE -----")
-    else:
-        print("----- Running script -----")
     get_news_from_api(test_mode=testing_flag)
+
+def sanitize_channel_input(raw_str: str) -> ChannelEnum:
+    cleaned = raw_str.lower().strip()
+    permitted_channels = [i.value for i in ChannelEnum]
+    if cleaned not in permitted_channels:
+        raise ValueError(
+            f"Permitted channels: {', '.join(permitted_channels)}. Passed channel: {raw_str}"
+        )
+    return ChannelEnum(cleaned)
+
+
+if __name__ == "__main__":
+    # Read cmd line args
+    profile_raw = sys.argv[1]  # Cmd line arg; Set to current_affairs or business
+    testing_flag = sys.argv[2] == "1"  # Cmd line arg; Set as 1 to enable testing mode
+    setup()
+
+    channel = sanitize_channel_input(profile_raw)
+    SelectedChannel().set_channel(channel)
+    TestingMode().set_testing_mode(testing_flag)
+    logger = logging.getLogger(__name__)
+    logger.info(f"Setting channel to {SelectedChannel().get_channel().value}")
+    logger.info(f"Setting testing mode to {TestingMode().get_testing_mode()}")
+
     print("----------")
     dedup_processed_news = deduplicate_articles(test_mode=testing_flag)
     print("----------")
