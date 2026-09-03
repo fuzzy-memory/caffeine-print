@@ -102,10 +102,11 @@ def deduplicate_articles(test_mode: bool = False):
         )
         for cluster_label in set(i.dbscan_cluster_label for i in news_items)
     }
-    for article in news_items:
+    source_filtered_items = [
+        i for i in news_items if i.source in source_scores_json.keys()
+    ]
+    for article in source_filtered_items:
         article.cluster_count = cluster_counts.get(article.dbscan_cluster_label)
-        if article.source not in source_scores_json.keys():
-            news_items.pop(news_items.index(article))
 
     if test_mode:
         pd.DataFrame(
@@ -115,10 +116,12 @@ def deduplicate_articles(test_mode: bool = False):
                     for k, v in article.to_json().items()
                     if k != "bert_processed_text"
                 }
-                for article in news_items
+                for article in source_filtered_items
             ]
         ).to_excel("assets/test/similarity_clustering.xlsx", index=False)
 
-    deduplicated_articles = pick_article_from_cluster(news_items, source_scores_json)
-    print(f"Extracted {len(deduplicated_articles)} articles after clustering")
+    deduplicated_articles = pick_article_from_cluster(
+        source_filtered_items, source_scores_json
+    )
+    logger.info(f"Extracted {len(deduplicated_articles)} articles after clustering")
     return deduplicated_articles
