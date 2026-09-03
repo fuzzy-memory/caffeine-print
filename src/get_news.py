@@ -112,6 +112,7 @@ def make_api_calls(
     caller: str,
 ):
     url = "https://api.worldnewsapi.com/search-news"
+    logger=logging.getLogger(__name__)
 
     # First call
     first_response = requests.get(url, headers=headers, params=params)
@@ -126,7 +127,7 @@ def make_api_calls(
         if total_items < news_items_per_call:
             offset = total_items
             remaining_items = 0
-        print(
+        logger.info(
             f"Found {first_response.json().get('available')} articles\nRetrieved {offset} items in total. {remaining_items} items to go"
         )
     else:
@@ -148,7 +149,7 @@ def make_api_calls(
                 news_items_per_call = max(remaining_items, 0)
             offset += news_items_per_call
             remaining_quota = float(next_response.headers.get("X-API-Quota-Left"))  # type: ignore
-            print(
+            logger.info(
                 f"Retrieved {len(news_items)} items in total. "
                 + (f"{remaining_items} to go" if remaining_items >= 0 else "")
             )
@@ -192,9 +193,9 @@ def get_news_from_api():
     )
     news_items.extend(api_output)
 
-    print(f"Operation complete. Remaining quota: {remaining_quota}")
+    logger.info(f"Operation complete. Remaining quota: {remaining_quota}")
     if len(news_items) == 0:
-        print("No news items returned from API")
+        logger.exception("No news items returned from API")
         exit(1)
     df = pd.DataFrame(news_items).drop_duplicates(subset=["id"])
     path_to_write = generate_asset_path("news.json")
