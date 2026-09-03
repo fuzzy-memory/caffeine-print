@@ -1,14 +1,15 @@
 import datetime
 import json
+import logging
 import os
 from http import HTTPStatus
 from typing import Any, Dict, Literal, Union
 
 import pandas as pd
 import requests
-from dateutil import relativedelta
 
-from properties import literature_and_laurels, permitted_callers
+from singletons import ChannelEnum, SelectedChannel, TestingMode
+from utils import generate_asset_path
 
 
 def generate_business_news_request_parms(
@@ -196,7 +197,7 @@ def get_news_from_api():
         print("No news items returned from API")
         exit(1)
     df = pd.DataFrame(news_items).drop_duplicates(subset=["id"])
-    path_to_write = "assets/" + ("test/" if test_mode else "") + "news.json"
+    path_to_write = generate_asset_path("news.json")
     df.to_json(
         path_to_write,
         index=False,

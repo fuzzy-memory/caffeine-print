@@ -1,4 +1,7 @@
+import os
 from typing import Dict, List
+
+from singletons import TestingMode
 
 
 def generate_prompt(article_text: str) -> List[Dict[str, str]]:
@@ -27,3 +30,8 @@ def generate_prompt(article_text: str) -> List[Dict[str, str]]:
             ),
         },
     ]
+
+
+def generate_asset_path(filename: str):
+    test_mode = TestingMode().get_testing_mode()
+    return os.path.join("assets", "test" if test_mode else "", filename)
