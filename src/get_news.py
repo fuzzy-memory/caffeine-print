@@ -11,7 +11,7 @@ from dateutil import relativedelta
 from properties import literature_and_laurels, permitted_callers
 
 
-def generate_general_news_request_params(
+def generate_business_news_request_parms(
     key: str,
 ) -> Dict[str, Union[Dict[str, str], int]]:
     # Date limit vars
@@ -28,6 +28,52 @@ def generate_general_news_request_params(
         [
             i.strip()
             for i in json.load(open("assets/control.json", "r"))
+            .get("business")
+            .get("source_scores")
+            .keys()
+        ]
+    )
+
+    # API ops
+    headers = {"x-api-key": key}
+    params: Dict[str, Any] = {
+        "source-country": "in",
+        "language": "en",
+        "earliest-publish-date": earliest,
+        "latest-publish-date": latest,
+        "categories": "business",
+        "number": news_items_per_call,
+        "offset": offset,
+        "sort": "publish-time",
+        "sort-direction": "DESC",
+        "news-sources": news_sources,
+    }
+    return {
+        "headers": headers,
+        "params": params,
+        "offset": offset,
+        "news_items_per_call": news_items_per_call,
+    }
+
+
+def generate_current_affairs_news_request_params(
+    key: str,
+) -> Dict[str, Union[Dict[str, str], int]]:
+    # Date limit vars
+    today = datetime.date.today()
+    latest = datetime.datetime.combine(
+        date=today - datetime.timedelta(days=1), time=datetime.time(23, 59, 59)
+    ).strftime("%Y-%m-%d %H:%M:%S")
+    earliest = datetime.datetime.combine(
+        date=today - datetime.timedelta(days=1), time=datetime.time(0, 0, 0)
+    ).strftime("%Y-%m-%d %H:%M:%S")
+    offset = 0
+    news_items_per_call = 100
+    news_sources = ",".join(
+        [
+            i.strip()
+            for i in json.load(open("assets/control.json", "r"))
+            .get("current_affairs")
             .get("source_scores")
             .keys()
         ]
@@ -55,42 +101,6 @@ def generate_general_news_request_params(
     }
 
 
-def generate_laurels_request_params(key) -> Dict[str, Union[Dict[str, str], int]]:
-    # Date limit vars
-    today = datetime.date.today()
-    last_sunday = today + relativedelta.relativedelta(weekday=relativedelta.SU(-1))
-
-    if last_sunday == today:
-        last_sunday -= datetime.timedelta(days=7)
-
-    latest = datetime.datetime.combine(
-        date=today - datetime.timedelta(days=0), time=datetime.time(0, 0, 0)
-    )
-    earliest = datetime.datetime.combine(date=last_sunday, time=datetime.time(0, 0, 0))
-    offset = 0
-    news_items_per_call = 100
-
-    # API ops
-    headers = {"x-api-key": key}
-    params: Dict[str, Any] = {
-        "language": "en",
-        "earliest-publish-date": earliest,
-        "latest-publish-date": latest,
-        "text": "winners of english literary awards OR pulitzer OR booker -oscars -grammy -emmy -movies -music",
-        "number": news_items_per_call,
-        "offset": offset,
-        "sort": "publish-time",
-        "sort-direction": "DESC",
-        # "news-sources": news_sources,
-    }
-    return {
-        "headers": headers,
-        "params": params,
-        "offset": offset,
-        "news_items_per_call": news_items_per_call,
-    }
-
-
 def make_api_calls(
     *,
     headers: Dict[str, str],
@@ -100,7 +110,6 @@ def make_api_calls(
     test_mode: bool,
     caller: str,
 ):
-    assert caller in permitted_callers
     url = "https://api.worldnewsapi.com/search-news"
 
     # First call
@@ -159,33 +168,28 @@ def get_news_from_api():
 
     # Set vars
     api_key = os.environ.get("WORLDNEWSAPI_KEY")
-    callers = dict(
-        zip(
-            permitted_callers,
-            [generate_general_news_request_params, generate_laurels_request_params],
-        )
-    )
+    profile_caller_mapping = {
+        ChannelEnum.BUSINESS: generate_business_news_request_parms,
+        ChannelEnum.CURRENT_AFFAIRS: generate_current_affairs_news_request_params,
+    }
     news_items = []
     remaining_quota = 0.0
-    if literature_and_laurels == 0:
-        callers.pop("laurels")
 
-    for caller in callers.keys():
-        generated_request_body = callers.get(caller)(key=api_key)
-        headers = generated_request_body.get("headers")
-        params = generated_request_body.get("params")
-        offset = generated_request_body.get("offset")
-        news_items_per_call = generated_request_body.get("news_items_per_call")
-        print(f"Sending GET requests for {caller} news items")
-        api_output, remaining_quota = make_api_calls(
-            headers=headers,
-            params=params,
-            offset=offset,
-            news_items_per_call=news_items_per_call,
-            test_mode=test_mode,
-            caller=caller,
-        )
-        news_items.extend(api_output)
+    generated_request_body = profile_caller_mapping.get(channel)(key=api_key)
+    headers = generated_request_body.get("headers")
+    params = generated_request_body.get("params")
+    offset = generated_request_body.get("offset")
+    news_items_per_call = generated_request_body.get("news_items_per_call")
+    logger.info(f"Sending GET requests for {channel.value} news items")
+    api_output, remaining_quota = make_api_calls(
+        headers=headers,
+        params=params,
+        offset=offset,
+        news_items_per_call=news_items_per_call,
+        test_mode=test_mode,
+        caller=channel.value,
+    )
+    news_items.extend(api_output)
 
     print(f"Operation complete. Remaining quota: {remaining_quota}")
     if len(news_items) == 0:
