@@ -8,11 +8,7 @@ from pydantic import (
     model_validator,
 )
 
-from properties import (
-    overall_weights,
-    permitted_tags,
-    sentiment_threshold,
-)
+from properties import overall_weights, permitted_tags, sentiment_threshold
 from singletons import ChannelEnum
 
 

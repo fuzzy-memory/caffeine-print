@@ -112,7 +112,7 @@ def make_api_calls(
     caller: str,
 ):
     url = "https://api.worldnewsapi.com/search-news"
-    logger=logging.getLogger(__name__)
+    logger = logging.getLogger(__name__)
 
     # First call
     first_response = requests.get(url, headers=headers, params=params)
