@@ -1,40 +1,68 @@
 {
-  "source_scores": {
-    "https://economictimes.indiatimes.com": 9,
-    "https://www.ndtv.com": 4,
-    "https://www.indiatoday.in": 9,
-    "https://www.thehindubusinessline.com": 8,
-    "https://www.thehindu.com": 10,
-    "https://pib.gov.in": 5,
-    "https://www.tribuneindia.com": 4,
-    "https://www.timesnownews.com": 3,
-    "https://www.hindustantimes.com": 10,
-    "https://timesofindia.indiatimes.com": 2
+  "current_affairs": {
+    "source_scores": {
+      "https://economictimes.indiatimes.com": 9,
+      "https://www.ndtv.com": 4,
+      "https://www.indiatoday.in": 9,
+      "https://www.thehindubusinessline.com": 8,
+      "https://www.thehindu.com": 10,
+      "https://pib.gov.in": 5,
+      "https://www.tribuneindia.com": 4,
+      "https://www.timesnownews.com": 3,
+      "https://www.hindustantimes.com": 10,
+      "https://timesofindia.indiatimes.com": 2
+    },
+    "negative_filters": [
+      "bengaluru",
+      "football",
+      "wealth",
+      "sports",
+      "opinion",
+      "auto",
+      "noida-news",
+      "money-and-banking",
+      "videos",
+      "entertainment",
+      "newsletter",
+      "banking",
+      "hotels",
+      "portfolio",
+      "nri",
+      "offbeat",
+      "markets",
+      "lifestyle",
+      "video",
+      "small-biz",
+      "banking",
+      "life-style",
+      "property",
+      "tech"
+    ],
+    "positive_filters": []
   },
-  "negative_filters": [
-    "bengaluru",
-    "football",
-    "wealth",
-    "sports",
-    "opinion",
-    "auto",
-    "noida-news",
-    "money-and-banking",
-    "videos",
-    "entertainment",
-    "newsletter",
-    "banking",
-    "hotels",
-    "portfolio",
-    "nri",
-    "offbeat",
-    "markets",
-    "lifestyle",
-    "video",
-    "small-biz",
-    "banking",
-    "life-style",
-    "property",
-    "tech"
-  ]
+  "business": {
+    "source_scores": {
+      "https://www.thehindubusinessline.com": 10,
+      "https://economictimes.indiatimes.com": 10,
+      "https://www.livemint.com": 10,
+      "https://www.business-standard.com": 10,
+      "https://www.huffpost.com": 10
+    },
+    "negative_filters": [],
+    "positive_filters": [
+      "Bank Loan fraud ",
+      "Forgery ",
+      "Loan fraud",
+      "Gold loan fraud",
+      "Cyber fraud",
+      "Digital arrest ",
+      "Employee fraud",
+      "Insolvency Resolution fraud",
+      "Vendor Fraud ",
+      "Treasury fraud",
+      "Accounting fraud",
+      "Investment fraud",
+      "Job fraud"
+    ]
+  }
 }
