@@ -46,9 +46,15 @@ def send_email(content: str, test_mode: bool):
     print("Emails sent :)")
 
 
-if __name__ == "__main__":
-    testing_flag = sys.argv[1] == "1"  # Cmd line arg; Set as 1 to enable testing mode
+def setup():
     load_dotenv()
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s.%(msecs)03d %(levelname)s: %(message)s",
+        datefmt="%Y-%m-%d %H:%M:%S",
+        stream=sys.stdout,
+        force=True,
+    )
     try:
         _create_unverified_https_context = ssl._create_unverified_context
     except AttributeError:
