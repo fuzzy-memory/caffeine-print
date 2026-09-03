@@ -142,10 +142,10 @@ def make_api_calls(
         next_response = requests.get(url, headers=headers, params=params)
         if next_response.status_code == HTTPStatus.OK:
             received = len(next_response.json().get("news"))
-            if total_items - received < news_items_per_call:
-                news_items_per_call = total_items - received
             news_items.extend(next_response.json().get("news"))
             remaining_items -= received
+            if remaining_items < news_items_per_call:
+                news_items_per_call = max(remaining_items, 0)
             offset += news_items_per_call
             remaining_quota = float(next_response.headers.get("X-API-Quota-Left"))  # type: ignore
             print(
