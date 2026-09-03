@@ -89,8 +89,8 @@ if __name__ == "__main__":
 
     get_news_from_api()
     logger.info("----------")
-    dedup_processed_news = deduplicate_articles(test_mode=testing_flag)
-    print("----------")
+    dedup_processed_news = deduplicate_articles()
+    logger.info("----------")
     sorted_news = rank_articles(news_items=dedup_processed_news, test_mode=testing_flag)
     print("----------")
     complete_html, skipped_articles = render_news(

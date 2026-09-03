@@ -1,4 +1,5 @@
 import json
+import logging
 import string
 from typing import Dict, List
 
@@ -8,7 +9,8 @@ from sentence_transformers import SentenceTransformer
 from sklearn.cluster import DBSCAN
 
 from data_models import Article
-from properties import dbscan_epsilon
+from singletons import SelectedChannel, TestingMode
+from utils import generate_asset_path
 
 
 def preprocess_text(text: str):
@@ -47,13 +49,17 @@ def pick_article_from_cluster(articles: List[Article], source_scores: Dict[str, 
     return list(clustered_articles.values())
 
 
-def deduplicate_articles(test_mode: bool = False):
+def deduplicate_articles():
+    logger = logging.getLogger(__name__)
+    test_mode = TestingMode().get_testing_mode()
+    channel = SelectedChannel().get_channel().value
     control_json = json.load(open("assets/control.json", "r"))
-    source_scores_json = control_json.get("source_scores")
-    negative_filters = control_json.get("negative_filters")
+    source_scores_json = control_json.get(channel).get("source_scores")
+    negative_filters = control_json.get(channel).get("negative_filters")
+    dbscan_epsilon = control_json.get(channel).get("dbscan_epsilon")
 
     # Read news items
-    path_to_read = "assets/" + ("test/" if test_mode else "") + "news.json"
+    path_to_read = generate_asset_path("news.json")
     news_items_raw = [
         Article(**i)
         for i in json.load(open(path_to_read, "r"))
@@ -61,11 +67,15 @@ def deduplicate_articles(test_mode: bool = False):
     ]
     news_items = []
     for raw_art in news_items_raw:
-        top_categories = set(i.strip("-") for i in [
-            x.strip()
-            for x in raw_art.url.replace(raw_art.source, "").split("/")
-            if x.strip() != ""
-        ][:4] if i.strip("-").count("-")<=2)
+        top_categories = set(
+            i.strip("-")
+            for i in [
+                x.strip()
+                for x in raw_art.url.replace(raw_art.source, "").split("/")
+                if x.strip() != ""
+            ][:4]
+            if i.strip("-").count("-") <= 2
+        )
 
         if (
             all(i not in negative_filters for i in top_categories)
@@ -73,7 +83,7 @@ def deduplicate_articles(test_mode: bool = False):
             and (not raw_art.is_skipped)
         ):
             news_items.append(raw_art)
-    print(f"Parsed {len(news_items)} articles from JSON")
+    logger.info(f"Parsed {len(news_items)} articles from JSON")
 
     # Load SBERT model
     model = SentenceTransformer("all-MiniLM-L6-v2")
@@ -118,7 +128,7 @@ def deduplicate_articles(test_mode: bool = False):
                 }
                 for article in source_filtered_items
             ]
-        ).to_excel("assets/test/similarity_clustering.xlsx", index=False)
+        ).to_excel(generate_asset_path("similarity_clustering.xlsx"), index=False)
 
     deduplicated_articles = pick_article_from_cluster(
         source_filtered_items, source_scores_json
