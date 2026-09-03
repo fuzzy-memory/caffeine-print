@@ -22,6 +22,7 @@ dependencies = [
     "psycopg2-binary (>=2.9.10,<3.0.0)",
     "sqlalchemy-cockroachdb (>=2.0.2,<3.0.0)",
     "requests (>=2.34.2,<3.0.0)",
+    "openpyxl (>=3.1.5,<4.0.0)",
 ]
 
 [tool.poetry]
