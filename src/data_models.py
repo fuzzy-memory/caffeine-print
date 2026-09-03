@@ -10,10 +10,10 @@ from pydantic import (
 
 from properties import (
     overall_weights,
-    permitted_callers,
     permitted_tags,
     sentiment_threshold,
 )
+from singletons import ChannelEnum
 
 
 class GPTArticleEvaluationMetrics(BaseModel):
@@ -109,9 +109,9 @@ class Article(BaseModel):
 
     @field_validator("api_query_category")
     def __validate_api_query_category(cls, val):
-        if val not in permitted_callers:
+        if val not in [i.value for i in ChannelEnum]:
             raise ValueError(
-                f"Caller {val} not permitted. Permitted callers are {', '.join(permitted_callers)}"
+                f"Caller {val} not permitted. Permitted callers are {', '.join([i.value for i in ChannelEnum])}"
             )
         return val
 
