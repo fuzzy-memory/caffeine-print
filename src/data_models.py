@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, Union
 
 from pydantic import (
     BaseModel,
@@ -13,13 +13,6 @@ from singletons import ChannelEnum
 
 
 class GPTArticleEvaluationMetrics(BaseModel):
-    indian_polity: float
-    indian_economy: float
-    global_current_affairs: float
-    geopolitics: float
-    indian_local_news: float
-    entertainment: float
-
     @model_validator(mode="after")
     def __validate_metrics(self):
         for attr in vars(self).keys():
@@ -27,8 +20,36 @@ class GPTArticleEvaluationMetrics(BaseModel):
             setattr(self, attr, min(10.0, getattr(self, attr)))
         return self
 
+
+class CurrentAffairsMetrics(GPTArticleEvaluationMetrics):
+    indian_polity: float
+    indian_economy: float
+    global_current_affairs: float
+    geopolitics: float
+    indian_local_news: float
+    entertainment: float
+
     def __str__(self):
         return f"[Polity: {self.indian_polity} | Economy: {self.indian_economy} | Global CA: {self.global_current_affairs} | Geopol: {self.geopolitics} | Local: {self.indian_local_news} | Entertainment: {self.entertainment}]"
+
+
+class BusinessMetrics(GPTArticleEvaluationMetrics):
+    bank_loan_fraud: float
+    forgery: float
+    loan_fraud: float
+    gold_loan_fraud: float
+    cyber_fraud: float
+    digital_arrest: float
+    employee_fraud: float
+    insolvency_resolution_fraud: float
+    vendor_fraud: float
+    treasury_fraud: float
+    accounting_fraud: float
+    investment_fraud: float
+    job_fraud: float
+
+    def __str__(self):
+        return f"[Bank Loan Fraud: {self.bank_loan_fraud} | Forgery: {self.forgery} | Loan Fraud: {self.loan_fraud} | Gold Loan Fraud: {self.gold_loan_fraud} | Cyber Fraud: {self.cyber_fraud} | Digital Arrest: {self.digital_arrest} | Employee Fraud: {self.employee_fraud} | Insolvency Resolution Fraud: {self.insolvency_resolution_fraud} | Vendor Fraud: {self.vendor_fraud} | Treasury Fraud: {self.treasury_fraud} | Accounting Fraud: {self.accounting_fraud} | Investment Fraud: {self.investment_fraud} | Job Fraud: {self.job_fraud}]"
 
 
 class ArticleScoreMetrics(BaseModel):
@@ -71,7 +92,7 @@ class Article(BaseModel):
     url: str
     sentiment: float
     source: Optional[str] = None
-    gpt_feedback: Optional[GPTArticleEvaluationMetrics] = None
+    gpt_feedback: Optional[Union[BusinessMetrics, CurrentAffairsMetrics]] = None
     relevance_trace: Optional[ArticleScoreMetrics] = None
     relevance_score: Optional[float] = 0.0
     is_skipped: Optional[bool] = False
