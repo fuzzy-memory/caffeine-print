@@ -11,9 +11,14 @@ from sklearn.feature_extraction.text import TfidfVectorizer  # type: ignore
 from tenacity import retry, stop_after_attempt, wait_exponential
 from tqdm import tqdm
 
-from data_models import Article, ArticleScoreMetrics, GPTArticleEvaluationMetrics
 from properties import gpt_category_multipliers, testing_gpt_threshold, chatgpt_model as model
 from utils import generate_prompt
+from data_models import (
+    Article,
+    ArticleScoreMetrics,
+    BusinessMetrics,
+    CurrentAffairsMetrics,
+)
 
 max_openai_retires = 5
 
@@ -22,9 +27,13 @@ max_openai_retires = 5
     wait=wait_exponential(multiplier=2, max=600),
     stop=stop_after_attempt(max_openai_retires),
 )
-def call_model(prompt: List[Dict[str, str]], client) -> Optional[ChatCompletion]:
+def call_model(
+    prompt: List[Dict[str, str]],
+    client,
+    res_format: Union[CurrentAffairsMetrics, BusinessMetrics],
+) -> Optional[ChatCompletion]:
     response = client.chat.completions.parse(
-        model=model, messages=prompt, response_format=GPTArticleEvaluationMetrics  # type: ignore
+        model=model, messages=prompt, response_format=res_format  # type: ignore
     )
     return response
 
@@ -33,7 +42,17 @@ def rank_via_chatgpt(news: List[Article]):
     client = OpenAI()
     total_time = 0.0
     scored_articles: List[Article] = []
-    print("Sending API calls to ChatGPT")
+    logger = logging.getLogger(__name__)
+    selected_channel = SelectedChannel().get_channel()
+    logger.info("Sending API calls to ChatGPT")
+
+    if selected_channel == ChannelEnum.CURRENT_AFFAIRS:
+        eval_rubric = CurrentAffairsMetrics
+    elif selected_channel == ChannelEnum.BUSINESS:
+        eval_rubric = BusinessMetrics
+    else:
+        raise NotImplementedError()
+
     for article in tqdm(news):
         start = time.time()
         if article.api_query_category == "laurels":
@@ -49,7 +68,7 @@ def rank_via_chatgpt(news: List[Article]):
             total_time += time.time() - start
             continue
         prompt = generate_prompt(article_text=article.text)
-        response = call_model(prompt, client)
+        response = call_model(prompt, client, eval_rubric)
         if response is None:
             print(
                 f"Unable to retrieve reply after {max_openai_retires} retries. Skipping question: {article.id}"
@@ -70,7 +89,8 @@ def rank_via_chatgpt(news: List[Article]):
             raise TypeError(
                 f"Response of unknown type returned by ChatGPT API: {type(raw_response)}"
             )
-        article.gpt_feedback = GPTArticleEvaluationMetrics(**json.loads(raw_response))
+
+        article.gpt_feedback = eval_rubric(**json.loads(raw_response))
         scored_articles.append(article)
         total_time += time.time() - start
     print()
@@ -101,28 +121,39 @@ def softmax(metrics: Dict[str, float]) -> Dict[str, np.float64]:
 
 
 def calculate_gpt_weighted_score(
-    metrics: GPTArticleEvaluationMetrics,
+    metrics: Union[BusinessMetrics, CurrentAffairsMetrics],
 ) -> Tuple[float, str]:
     metric_dict = vars(metrics)
-    assert set(metric_dict.keys()) == set(gpt_category_multipliers.keys())
+    selected_channel = SelectedChannel().get_channel().value
+    assert set(metric_dict.keys()) == set(
+        gpt_category_multipliers.get(selected_channel).keys()
+    )
     softmax_metrics = softmax(metric_dict)
     highest_scoring_metric = max(softmax_metrics, key=softmax_metrics.get)  # type: ignore
     highest_scoring_value = max(softmax_metrics.values())
-    multiplier = gpt_category_multipliers.get(highest_scoring_metric)
+    multiplier = gpt_category_multipliers.get(selected_channel).get(
+        highest_scoring_metric
+    )
     if multiplier is None:
         raise ValueError(
             f"Unable to find multiplier for metric {highest_scoring_metric}"
         )
 
     final_score = multiplier * highest_scoring_value
-    if highest_scoring_metric in ["geopolitics", "global_current_affairs"]:
-        tag = "international"
-    elif highest_scoring_metric.startswith("indian"):
-        tag = "national"
-    elif highest_scoring_metric == "entertainment":
-        tag = "entertainment"
+    selected_channel = SelectedChannel().get_channel()
+    if selected_channel == ChannelEnum.CURRENT_AFFAIRS:
+        if highest_scoring_metric in ["geopolitics", "global_current_affairs"]:
+            tag = "international"
+        elif highest_scoring_metric.startswith("indian"):
+            tag = "national"
+        elif highest_scoring_metric == "entertainment":
+            tag = "entertainment"
+        else:
+            raise ValueError("Could not resolve appropriate tag")
+    elif selected_channel == ChannelEnum.BUSINESS:
+        tag = "business"
     else:
-        raise ValueError("Could not resolve appropriate tag")
+        raise NotImplementedError()
     return final_score, tag
 
 
