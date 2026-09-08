@@ -145,15 +145,19 @@ def calculate_gpt_weighted_score(
     return final_score, tag
 
 
-def rank_articles(news_items: List[Article], test_mode: bool):
+def rank_articles(news_items: List[Article]):
+    logger = logging.getLogger(__name__)
+    test_mode = TestingMode().get_testing_mode()
+    selected_channel = SelectedChannel().get_channel().value
     if test_mode:
-        dir_path = "assets/test/"
-        pth = os.path.join(os.path.curdir, dir_path)
-        if f"chatgpt_ranking_{model}.json" in os.listdir(pth):
-            df = pd.read_json(f"assets/test/chatgpt_ranking_{model}.json")
-            print(f"{df.shape[0]} ranked articles using {model} already exist in `assets/test`")
+        try:
+            test_path = generate_asset_path(f"chatgpt_ranking_{model}.json")
+            df = pd.read_json(test_path)
+            logger.info(
+                f"{df.shape[0]} ranked articles using {model} already exist in `assets/test`"
+            )
             return df
-        else:
+        except FileNotFoundError:
             if not testing_gpt_threshold:
                 final_threshold = len(news_items)
             else:
@@ -167,7 +171,11 @@ def rank_articles(news_items: List[Article], test_mode: bool):
     text_scores = run_tfidf(gpt_processed_articles=gpt_scored_articles)
     logger.info(f"Generated TF-IDF scoring for {len(text_scores)} articles")
     sentiment_scores = [abs(i.sentiment) for i in gpt_scored_articles]
-    source_scores = json.load(open("assets/control.json", "r")).get("source_scores")
+    source_scores = (
+        json.load(open("assets/control.json", "r"))
+        .get(selected_channel)
+        .get("source_scores")
+    )
 
     # Compute final relevance
     relevance_scored_articles = []
@@ -203,6 +211,7 @@ def rank_articles(news_items: List[Article], test_mode: bool):
         ignore_index=True,
     )
     if test_mode:
-        df.to_json(f"assets/test/chatgpt_ranking_{model}.json", orient="records")
-        df[['title', 'indian_polity', 'indian_economy', 'global_current_affairs', 'geopolitics', 'indian_local_news', 'entertainment', 'gpt_feedback_score', 'relevance_score']].to_excel(f"assets/test/short_chatgpt_ranking_{model}.xlsx")
+        df.to_json(
+            generate_asset_path(f"chatgpt_ranking_{model}.json"), orient="records"
+        )
     return df
