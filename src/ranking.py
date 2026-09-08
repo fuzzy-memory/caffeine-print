@@ -1,7 +1,7 @@
 import json
-import os
+import logging
 import time
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Optional, Tuple, Union
 
 import numpy as np
 import pandas as pd
@@ -11,14 +11,16 @@ from sklearn.feature_extraction.text import TfidfVectorizer  # type: ignore
 from tenacity import retry, stop_after_attempt, wait_exponential
 from tqdm import tqdm
 
-from properties import gpt_category_multipliers, testing_gpt_threshold, chatgpt_model as model
-from utils import generate_prompt
 from data_models import (
     Article,
     ArticleScoreMetrics,
     BusinessMetrics,
     CurrentAffairsMetrics,
 )
+from properties import chatgpt_model as model
+from properties import gpt_category_multipliers, testing_gpt_threshold
+from singletons import ChannelEnum, SelectedChannel, TestingMode
+from utils import generate_asset_path, generate_prompt
 
 max_openai_retires = 5
 
