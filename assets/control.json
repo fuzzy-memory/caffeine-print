@@ -39,8 +39,7 @@
       "life-style",
       "property",
       "tech"
-    ],
-    "positive_filters": []
+    ]
   },
   "business": {
     "dbscan_epsilon":0.25,
@@ -52,21 +51,24 @@
       "https://www.business-standard.com": 10,
       "https://www.huffpost.com": 10
     },
-    "negative_filters": [],
-    "positive_filters": [
-      "Bank Loan fraud ",
-      "Forgery ",
-      "Loan fraud",
-      "Gold loan fraud",
-      "Cyber fraud",
-      "Digital arrest ",
-      "Employee fraud",
-      "Insolvency Resolution fraud",
-      "Vendor Fraud ",
-      "Treasury fraud",
-      "Accounting fraud",
-      "Investment fraud",
-      "Job fraud"
+    "negative_filters": [
+      "football",
+      "sports",
+      "opinion",
+      "auto",
+      "noida-news",
+      "videos",
+      "entertainment",
+      "newsletter",
+      "hotels",
+      "nri",
+      "offbeat",
+      "lifestyle",
+      "video",
+      "small-biz",
+      "life-style",
+      "property",
+      "tech"
     ]
   }
 }
