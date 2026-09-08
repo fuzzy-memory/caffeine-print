@@ -91,8 +91,8 @@ if __name__ == "__main__":
     logger.info("----------")
     dedup_processed_news = deduplicate_articles()
     logger.info("----------")
-    sorted_news = rank_articles(news_items=dedup_processed_news, test_mode=testing_flag)
-    print("----------")
+    sorted_news = rank_articles(news_items=dedup_processed_news)
+    logger.info("----------")
     complete_html, skipped_articles = render_news(
         article_df=sorted_news,
         test_mode=testing_flag,
