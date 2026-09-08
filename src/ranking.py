@@ -58,12 +58,12 @@ def rank_via_chatgpt(news: List[Article]):
         prompt = generate_prompt(article_text=article.text)
         response = call_model(prompt, client, eval_rubric)
         if response is None:
-            print(
+            logger.error(
                 f"Unable to retrieve reply after {max_openai_retires} retries. Skipping question: {article.id}"
             )
             continue
         if response.choices[0].message.refusal:
-            print(
+            logger.error(
                 f"Refusal encountered for {article.id}: {response.choices[0].message.refusal}"
             )
             continue
@@ -81,11 +81,11 @@ def rank_via_chatgpt(news: List[Article]):
         article.gpt_feedback = eval_rubric(**json.loads(raw_response))
         scored_articles.append(article)
         total_time += time.time() - start
-    print()
-    print(
+    logger.info("")
+    logger.info(
         f"Retrieved {len(scored_articles)} responses in {round(total_time, 4)} seconds or {round(total_time / 60, 4)} mins"
     )
-    print(
+    logger.info(
         f"Average time taken per response: {round(total_time / len(scored_articles), 4)} seconds"
     )
     return scored_articles
@@ -159,13 +159,13 @@ def rank_articles(news_items: List[Article], test_mode: bool):
             else:
                 final_threshold = min(len(news_items), testing_gpt_threshold)
         news_items = news_items[:final_threshold]
-        print(f"Limiting to {len(news_items)} articles")
+        logger.info(f"Limiting to {len(news_items)} articles")
 
     gpt_scored_articles = rank_via_chatgpt(news=news_items)
-    print(f"Generated GPT scoring for {len(gpt_scored_articles)} articles")
+    logger.info(f"Generated GPT scoring for {len(gpt_scored_articles)} articles")
 
     text_scores = run_tfidf(gpt_processed_articles=gpt_scored_articles)
-    print(f"Generated TF-IDF scoring for {len(text_scores)} articles")
+    logger.info(f"Generated TF-IDF scoring for {len(text_scores)} articles")
     sentiment_scores = [abs(i.sentiment) for i in gpt_scored_articles]
     source_scores = json.load(open("assets/control.json", "r")).get("source_scores")
 
@@ -186,7 +186,7 @@ def rank_articles(news_items: List[Article], test_mode: bool):
         article.relevance_score = article.relevance_trace.relevance
         article.tag = tag
         relevance_scored_articles.append(article)
-    print(f"Calculated {len(relevance_scored_articles)} relevance scores")
+    logger.info(f"Calculated {len(relevance_scored_articles)} relevance scores")
 
     relevance_scored_articles = [
         i
@@ -194,7 +194,7 @@ def rank_articles(news_items: List[Article], test_mode: bool):
         if i.gpt_feedback.entertainment < 4 and i.tag != "entertainment"
     ]
 
-    print(f"Final scored news articles: {len(relevance_scored_articles)}")
+    logger.info(f"Final scored news articles: {len(relevance_scored_articles)}")
     df = pd.DataFrame([i.to_json() for i in relevance_scored_articles])
     df.sort_values(
         by="relevance_score",
