@@ -10,14 +10,34 @@ overall_weights = {
     "cluster_count": 0.05,
 }
 gpt_category_multipliers = {
-    "indian_polity": 0.65,
-    "indian_economy": 0.1,
-    "geopolitics": 0.175,
-    "global_current_affairs": 0.125,
-    "indian_local_news": -0.05,
-    "entertainment": 0,
+    "current_affairs": {
+        "indian_polity": 0.65,
+        "indian_economy": 0.1,
+        "geopolitics": 0.175,
+        "global_current_affairs": 0.125,
+        "indian_local_news": -0.05,
+        "entertainment": 0,
+    },
+    "business": {
+        "bank_loan_fraud": 1 / 13,
+        "forgery": 1 / 13,
+        "loan_fraud": 1 / 13,
+        "gold_loan_fraud": 1 / 13,
+        "cyber_fraud": 1 / 13,
+        "digital_arrest": 1 / 13,
+        "employee_fraud": 1 / 13,
+        "insolvency_resolution_fraud": 1 / 13,
+        "vendor_fraud": 1 / 13,
+        "treasury_fraud": 1 / 13,
+        "accounting_fraud": 1 / 13,
+        "investment_fraud": 1 / 13,
+        "job_fraud": 1 / 13,
+    },
 }
-assert sum(gpt_category_multipliers.values()) == 1.0
+assert all(
+    sum(gpt_category_multipliers.get(channel).values()) == 1.0
+    for channel in gpt_category_multipliers
+)
 
 is_weekday = datetime.date.today().weekday() <= 4
 total_news_items = 30 if is_weekday else 70
