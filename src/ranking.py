@@ -196,11 +196,12 @@ def rank_articles(news_items: List[Article]):
         relevance_scored_articles.append(article)
     logger.info(f"Calculated {len(relevance_scored_articles)} relevance scores")
 
-    relevance_scored_articles = [
-        i
-        for i in relevance_scored_articles
-        if i.gpt_feedback.entertainment < 4 and i.tag != "entertainment"
-    ]
+    if selected_channel == ChannelEnum.CURRENT_AFFAIRS.value:
+        relevance_scored_articles = [
+            i
+            for i in relevance_scored_articles
+            if i.gpt_feedback.entertainment < 4 and i.tag != "entertainment"
+        ]
 
     logger.info(f"Final scored news articles: {len(relevance_scored_articles)}")
     df = pd.DataFrame([i.to_json() for i in relevance_scored_articles])
